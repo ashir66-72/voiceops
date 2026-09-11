@@ -17,6 +17,10 @@ VoiceOps is actively being built.
 
 The AssemblyAI voice loop has already been successfully demonstrated.
 
+Python 3.13.2 environment is ready.
+
+PostgreSQL setup is in progress.
+
 ---
 
 ## COMPLETED
@@ -46,6 +50,17 @@ The AssemblyAI voice loop has already been successfully demonstrated.
 - [x] ARCHITECTURE.md
 - [x] DECISIONS.md
 - [x] PROJECT_STATE.md
+- [x] docs/increment-log.md
+- [x] docs/session-notes.md
+
+### Environment
+
+- [x] Python 3.13.2 virtual environment created
+- [x] Old Python 3.10 venv replaced
+- [x] Docker verified available (version 29.7.2)
+- [x] PostgreSQL 18 detected on system (not in PATH)
+- [x] Git repository initialized
+- [x] First commit made
 
 ---
 
@@ -53,11 +68,9 @@ The AssemblyAI voice loop has already been successfully demonstrated.
 
 ### Environment
 
-- [ ] Python 3.11+ confirmed
-- [ ] New Python 3.11 virtual environment
-- [ ] PostgreSQL installed
-- [ ] psql available in PATH
-- [ ] PostgreSQL database created
+- [ ] PostgreSQL running (Docker or local)
+- [ ] `voiceops` database created
+- [ ] Database connection verified from Python
 
 ### Backend
 
@@ -125,31 +138,23 @@ The AssemblyAI voice loop has already been successfully demonstrated.
 
 ## CURRENT BLOCKER
 
-Python currently reports:
+PostgreSQL is not yet running.
 
-Python 3.10.10
-
-The target development version is Python 3.11+.
-
-PostgreSQL is currently not available through `psql`.
-
-The PostgreSQL installer website previously returned a 403 error.
+Decision pending: use Docker or local PostgreSQL 18 install.
 
 ---
 
 ## CURRENT IMMEDIATE OBJECTIVE
 
-Resolve the local development environment.
+Get PostgreSQL running and verify a database connection.
 
 Order:
 
-1. Confirm Python installations.
-2. Create Python 3.11 virtual environment.
-3. Install backend dependencies.
-4. Install/configure PostgreSQL.
-5. Create voiceops database.
-6. Verify connection.
-7. Then create SQLAlchemy models.
+1. Decide PostgreSQL method (Docker recommended).
+2. Run PostgreSQL.
+3. Create `voiceops` database.
+4. Verify connection.
+5. Then create SQLAlchemy models.
 
 ---
 
@@ -186,7 +191,7 @@ BUILD
 
 ## CURRENT NEXT ACTION
 
-Resolve Python 3.11 and PostgreSQL environment setup.
+Set up PostgreSQL.
 
 After that:
 database connection proof.
@@ -201,11 +206,17 @@ WORKING
 Local application directory:
 WORKING
 
+Python 3.13.2 venv:
+WORKING
+
 AssemblyAI API credentials:
 CONFIGURED LOCALLY
 
 Voice interaction:
 WORKING
+
+PostgreSQL:
+NOT RUNNING
 
 ---
 

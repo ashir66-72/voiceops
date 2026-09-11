@@ -1,0 +1,49 @@
+I'm building VoiceOps, a voice business operator for a hackathon.
+
+I'm working incrementally and I want ONE increment per session.
+
+Here are the project files:
+
+[PASTE MASTER_SPEC.md]
+
+[PASTE ARCHITECTURE.md]
+
+[PASTE DECISIONS.md]
+
+[PASTE PROJECT_STATE.md]
+
+[PASTE docs/increment-log.md]
+
+[PASTE docs/session-notes.md]
+
+Today's increment: [describe the ONE thing you want to do]
+
+Rules:
+- Explain what we're building and why BEFORE writing code.
+- Write the code.
+- Explain how to run it.
+- Explain how to test it.
+- At the end, give me:
+  1. One-line entry for docs/increment-log.md
+  2. Full entry for docs/session-notes.md
+  3. Updated PROJECT_STATE.md sections (only changed ones)
+  4. Git commit message
+  5. Next increment suggestion
+
+
+
+
+
+
+
+
+
+
+
+
+Increment complete. Give me:
+1. The one-line increment-log entry.
+2. The session-notes entry.
+3. The updated sections of PROJECT_STATE.md.
+4. The git commit message.
+5. The next increment suggestion.
