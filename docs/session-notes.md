@@ -80,11 +80,16 @@ Purpose: recover context quickly if a session is cut short.
 - Docker container `voiceops-pg` (postgres:18), port 5433 → 5432
 - `.env` file with `DATABASE_URL`
 - `test_db_connection.py` — minimal SQLAlchemy connection proof
+backend/` package: `__init__.py`, `database.py`, `main.py`
+- `/health` GET endpoint returning API + DB status in one response
 
 ### What Was Verified
 - `docker ps` shows `voiceops-pg` Up
 - `netstat -ano | findstr :5432` confirmed a competing local listener, explaining the first connection failure
 - `python test_db_connection.py` returned `Connection successful. Result: (1,)` after pointing `.env` at port 5433
+
+- `uvicorn backend.main:app --reload` starts clean, no errors
+- `GET /health` returns `200 OK` with `{"status":"ok","database":"connected"}`
 
 ### Blockers Hit
 - Local Postgres 18 Windows service occupying port 5432, intercepting connections meant for the Docker container — surfaced as a misleading `password authentication failed` error rather than a port/connection error

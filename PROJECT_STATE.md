@@ -68,6 +68,13 @@ verified from Python. Backend build (FastAPI) starts next.
 - [x] `voiceops` database created
 - [x] Database connection verified from Python (SQLAlchemy + psycopg2)
 
+
+### backend 
+- [x] backend structure
+- [x] database connection (wired into FastAPI via `backend/database.py`)
+- [x] FastAPI
+- [x] /health endpoint
+
 ---
 
 ## NOT COMPLETED
@@ -77,12 +84,10 @@ verified from Python. Backend build (FastAPI) starts next.
 
 ### Backend
 
-- [ ] backend structure
-- [ ] SQLAlchemy
-- [ ] database connection
-- [ ] models
-- [ ] FastAPI
-- [ ] /health endpoint
+
+- sqlalchemy[]
+- models[]
+
 
 ### Data
 
@@ -147,16 +152,16 @@ None. PostgreSQL environment blocker resolved 2026-09-11.
 
 ## CURRENT IMMEDIATE OBJECTIVE
 
-Build the FastAPI backend skeleton and a working `/health` endpoint
-that confirms both the API and the database connection are alive.
+Create SQLAlchemy ORM models for the seven core tables and verify
+they can create tables in the `voiceops` database.
 
 Order:
 
-1. Install FastAPI + Uvicorn.
-2. Create backend structure (`database.py`, `main.py`).
-3. Implement `/health` endpoint.
-4. Verify locally.
-5. Then begin SQLAlchemy models.
+1. Define models: customers, products, orders, order_items, payments, notes, activity_log.
+2. Add relationships (foreign keys) between them.
+3. Run a script to create tables from models.
+4. Verify tables exist in Postgres.
+5. Then move to Urban Bites seed data.
 
 ## DO NOT DO YET
 
@@ -193,7 +198,7 @@ BUILD
 
 ## CURRENT NEXT ACTION
 
-Build FastAPI skeleton with /health endpoint.
+Build SQLAlchemy models for the seven core tables.
 
 ---
 

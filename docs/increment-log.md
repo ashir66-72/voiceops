@@ -22,11 +22,12 @@ This is the project timeline.
 - SQLAlchemy, psycopg2-binary, python-dotenv installed in the 3.13.2 venv
 - `.env` created with `DATABASE_URL`, confirmed excluded via existing `.gitignore`
 - Database connection verified from Python (`test_db_connection.py`, `SELECT 1` succeeded)
+- FastAPI backend skeleton created (`backend/main.py`, `backend/database.py`)
+- `/health` endpoint implemented and verified — confirms API up and DB reachable in one call
 
 ## Pending
 
-- PostgreSQL setup (method TBD — Docker or local install)
-- FastAPI backend skeleton
+
 - SQLAlchemy models
 - Seed data
 - Business tools
