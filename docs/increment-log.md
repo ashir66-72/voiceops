@@ -24,6 +24,10 @@ This is the project timeline.
 - Database connection verified from Python (`test_db_connection.py`, `SELECT 1` succeeded)
 - FastAPI backend skeleton created (`backend/main.py`, `backend/database.py`)
 - `/health` endpoint implemented and verified — confirms API up and DB reachable in one call
+- SQLAlchemy models created for all 7 tables (`backend/models.py`): customers, products, orders, order_items, payments, notes, activity_log
+- Foreign key relationships wired between customers↔orders, orders↔order_items, orders↔payments, products↔order_items, customers↔notes
+- `create_tables.py` script run — all 7 tables created in `voiceops` database
+- Verified via `docker exec ... psql -c "\dt"` — all 7 tables present
 
 ## Pending
 

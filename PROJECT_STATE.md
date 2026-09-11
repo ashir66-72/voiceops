@@ -75,6 +75,12 @@ verified from Python. Backend build (FastAPI) starts next.
 - [x] FastAPI
 - [x] /health endpoint
 
+
+### Database Schema
+- [x] SQLAlchemy models for all 7 tables (customers, products, orders, order_items, payments, notes, activity_log)
+- [x] Foreign key relationships defined
+- [x] Tables created in `voiceops` database and verified
+
 ---
 
 ## NOT COMPLETED
@@ -85,8 +91,6 @@ verified from Python. Backend build (FastAPI) starts next.
 ### Backend
 
 
-- sqlalchemy[]
-- models[]
 
 
 ### Data
@@ -152,16 +156,15 @@ None. PostgreSQL environment blocker resolved 2026-09-11.
 
 ## CURRENT IMMEDIATE OBJECTIVE
 
-Create SQLAlchemy ORM models for the seven core tables and verify
-they can create tables in the `voiceops` database.
+Build the Urban Bites synthetic seed dataset per ADR-009 / MASTER_SPEC §8.
 
 Order:
 
-1. Define models: customers, products, orders, order_items, payments, notes, activity_log.
-2. Add relationships (foreign keys) between them.
-3. Run a script to create tables from models.
-4. Verify tables exist in Postgres.
-5. Then move to Urban Bites seed data.
+1. Write a seed script that inserts 10 customers, 6 products, 30 orders, 30 payments, and matching order_items.
+2. Make the dataset deterministic (fixed values, not random) so demo results are predictable.
+3. Ensure several payments are deliberately left "pending"/"overdue" for the overdue_payments tool to have something to return.
+4. Run the seed script against `voiceops`.
+5. Verify row counts in each table.
 
 ## DO NOT DO YET
 
@@ -198,8 +201,7 @@ BUILD
 
 ## CURRENT NEXT ACTION
 
-Build SQLAlchemy models for the seven core tables.
-
+Write and run the Urban Bites seed data script.
 ---
 
 ## LAST KNOWN WORKING STATE
@@ -221,6 +223,17 @@ WORKING
 
 PostgreSQL:
 RUNNING (Docker, port 5433) — connection verified
+
+dataase schema created 7 tables .
+ Schema |     Name     | Type  |  Owner   
+--------+--------------+-------+----------
+ public | activity_log | table | postgres
+ public | customers    | table | postgres
+ public | notes        | table | postgres
+ public | order_items  | table | postgres
+ public | orders       | table | postgres
+ public | payments     | table | postgres
+ public | products     | table | postgres
 ---
 
 ## IMPORTANT PROJECT RULE

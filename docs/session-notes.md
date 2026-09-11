@@ -23,11 +23,16 @@ Purpose: recover context quickly if a session is cut short.
 - increment-log.md
 - session-notes.md
 - Python 3.13.2 venv
+- `backend/models.py` — 7 SQLAlchemy ORM models with relationships
+- `Base = declarative_base()` added to `backend/database.py`
+- `create_tables.py` — one-off script to issue CREATE TABLE from models
 
 ### What Was Verified
 - `py --list` shows 3.14, 3.13, 3.10
 - `python --version` in venv prints 3.13.2
 - Docker is installed and working
+- `python create_tables.py` ran clean, no errors
+- `docker exec -it voiceops-pg psql -U postgres -d voiceops -c "\dt"` confirmed all 7 tables exist in Postgre
 
 ### Blockers Hit
 - PostgreSQL not yet running
