@@ -81,6 +81,10 @@ verified from Python. Backend build (FastAPI) starts next.
 - [x] Foreign key relationships defined
 - [x] Tables created in `voiceops` database and verified
 
+
+### data 
+- [x] Urban Bites seed data (`seed_data.py`) — deterministic, rerunnable
+- [x] Database verification (row counts, payment status split, best-seller check)
 ---
 
 ## NOT COMPLETED
@@ -93,11 +97,6 @@ verified from Python. Backend build (FastAPI) starts next.
 
 
 
-### Data
-
-- [ ] Urban Bites seed data
-- [ ] database verification
-- [ ] tests
 
 ### Tools
 
@@ -156,15 +155,19 @@ None. PostgreSQL environment blocker resolved 2026-09-11.
 
 ## CURRENT IMMEDIATE OBJECTIVE
 
-Build the Urban Bites synthetic seed dataset per ADR-009 / MASTER_SPEC §8.
+## CURRENT IMMEDIATE OBJECTIVE
+
+Build the four read tools as FastAPI endpoints per MASTER_SPEC §6:
+business_snapshot, find_customer, overdue_payments, best_sellers.
 
 Order:
 
-1. Write a seed script that inserts 10 customers, 6 products, 30 orders, 30 payments, and matching order_items.
-2. Make the dataset deterministic (fixed values, not random) so demo results are predictable.
-3. Ensure several payments are deliberately left "pending"/"overdue" for the overdue_payments tool to have something to return.
-4. Run the seed script against `voiceops`.
-5. Verify row counts in each table.
+1. Design each endpoint's request/response shape.
+2. Implement business_snapshot (aggregate KPIs).
+3. Implement find_customer (name lookup).
+4. Implement overdue_payments (filtered payment query).
+5. Implement best_sellers (aggregation query).
+6. Test each endpoint manually with curl/browser.
 
 ## DO NOT DO YET
 
@@ -201,7 +204,7 @@ BUILD
 
 ## CURRENT NEXT ACTION
 
-Write and run the Urban Bites seed data script.
+Build the four read-tool FastAPI endpoints, starting with business_snapshot.
 ---
 
 ## LAST KNOWN WORKING STATE

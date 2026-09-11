@@ -28,6 +28,10 @@ This is the project timeline.
 - Foreign key relationships wired between customers↔orders, orders↔order_items, orders↔payments, products↔order_items, customers↔notes
 - `create_tables.py` script run — all 7 tables created in `voiceops` database
 - Verified via `docker exec ... psql -c "\dt"` — all 7 tables present
+- `seed_data.py` created — deterministic Urban Bites dataset (truncate-and-reseed pattern, fixed anchor date)
+- Seeded: 10 customers, 6 products, 30 orders, 55 order_items, 30 payments
+- Payment split: 20 paid / 6 overdue / 4 pending — verified via SQL query
+- Best-seller verified: Chicken Biryani (35 units) clearly ahead of next product (10 units)
 
 ## Pending
 
