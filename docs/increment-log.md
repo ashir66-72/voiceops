@@ -32,6 +32,10 @@ This is the project timeline.
 - Seeded: 10 customers, 6 products, 30 orders, 55 order_items, 30 payments
 - Payment split: 20 paid / 6 overdue / 4 pending — verified via SQL query
 - Best-seller verified: Chicken Biryani (35 units) clearly ahead of next product (10 units)
+- `backend/tools.py` created — business logic for the four read tools (business_snapshot, find_customer, overdue_payments, best_sellers)
+- `get_db` dependency added to `backend/database.py` for per-request session handling
+- Four routes wired into `backend/main.py`: `/tools/business_snapshot`, `/tools/find_customer`, `/tools/overdue_payments`, `/tools/best_sellers`
+- All four endpoints tested manually via curl — verified against known seed data values
 
 ## Pending
 

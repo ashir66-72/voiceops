@@ -85,6 +85,19 @@ verified from Python. Backend build (FastAPI) starts next.
 ### data 
 - [x] Urban Bites seed data (`seed_data.py`) — deterministic, rerunnable
 - [x] Database verification (row counts, payment status split, best-seller check)
+
+
+
+### Tools
+- [x] business_snapshot
+- [x] find_customer
+- [x] overdue_payments
+- [x] best_sellers
+
+
+
+
+
 ---
 
 ## NOT COMPLETED
@@ -100,10 +113,7 @@ verified from Python. Backend build (FastAPI) starts next.
 
 ### Tools
 
-- [ ] business_snapshot
-- [ ] find_customer
-- [ ] overdue_payments
-- [ ] best_sellers
+
 - [ ] add_note
 - [ ] send_payment_reminder
 
@@ -157,17 +167,16 @@ None. PostgreSQL environment blocker resolved 2026-09-11.
 
 ## CURRENT IMMEDIATE OBJECTIVE
 
-Build the four read tools as FastAPI endpoints per MASTER_SPEC §6:
-business_snapshot, find_customer, overdue_payments, best_sellers.
+Build the two write tools per MASTER_SPEC §6 and §10: add_note and
+send_payment_reminder. Both must follow the write-action rule —
+identify target, read current state, confirm intent, execute, log.
 
 Order:
 
-1. Design each endpoint's request/response shape.
-2. Implement business_snapshot (aggregate KPIs).
-3. Implement find_customer (name lookup).
-4. Implement overdue_payments (filtered payment query).
-5. Implement best_sellers (aggregation query).
-6. Test each endpoint manually with curl/browser.
+1. Implement add_note (simple write: customer_id + content → notes table).
+2. Implement send_payment_reminder (validate target payment exists and is overdue/pending, record simulated reminder, update reminder_sent_at).
+3. Both write tools create an activity_log entry on success.
+4. Test each with curl — including failure cases (invalid customer_id, invalid payment_id).
 
 ## DO NOT DO YET
 
@@ -204,7 +213,7 @@ BUILD
 
 ## CURRENT NEXT ACTION
 
-Build the four read-tool FastAPI endpoints, starting with business_snapshot.
+Build add_note and send_payment_reminder write tools with activity_log entries.
 ---
 
 ## LAST KNOWN WORKING STATE
