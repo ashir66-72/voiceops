@@ -61,3 +61,36 @@ Purpose: recover context quickly if a session is cut short.
 
 ### Next Session
 -
+
+
+
+
+## Session 2026-09-11 — PostgreSQL Running + Connection Verified
+
+### Goal
+- Get PostgreSQL running
+- Verify a database connection from Python
+
+### Decisions Made
+- Used Docker (per ADR-002 / ADR-007) instead of the pre-installed local Postgres 18
+- Remapped Docker container to host port 5433 instead of 5432 — local Postgres 18 service was already bound to 5432 and caused a silent password-auth conflict, not an actual credential error
+- `voiceops` database created via `POSTGRES_DB` env var at container start, no manual DB creation step needed
+
+### What Got Built
+- Docker container `voiceops-pg` (postgres:18), port 5433 → 5432
+- `.env` file with `DATABASE_URL`
+- `test_db_connection.py` — minimal SQLAlchemy connection proof
+
+### What Was Verified
+- `docker ps` shows `voiceops-pg` Up
+- `netstat -ano | findstr :5432` confirmed a competing local listener, explaining the first connection failure
+- `python test_db_connection.py` returned `Connection successful. Result: (1,)` after pointing `.env` at port 5433
+
+### Blockers Hit
+- Local Postgres 18 Windows service occupying port 5432, intercepting connections meant for the Docker container — surfaced as a misleading `password authentication failed` error rather than a port/connection error
+- Resolved by moving the Docker container to port 5433 and updating `DATABASE_URL` to match
+
+### Next Session
+- Build backend structure (FastAPI skeleton)
+- Add SQLAlchemy models for customers, products, orders, order_items, payments, notes, activity_log
+- Add `/health` endpoint

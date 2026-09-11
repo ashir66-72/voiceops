@@ -3,6 +3,8 @@
 Last Updated:
 2026-09-09
 
+
+
 ---
 
 ## CURRENT PHASE
@@ -19,7 +21,8 @@ The AssemblyAI voice loop has already been successfully demonstrated.
 
 Python 3.13.2 environment is ready.
 
-PostgreSQL setup is in progress.
+PostgreSQL is running in Docker and a database connection has been
+verified from Python. Backend build (FastAPI) starts next.
 
 ---
 
@@ -61,6 +64,9 @@ PostgreSQL setup is in progress.
 - [x] PostgreSQL 18 detected on system (not in PATH)
 - [x] Git repository initialized
 - [x] First commit made
+- [x] PostgreSQL running (Docker, container `voiceops-pg`, port 5433)
+- [x] `voiceops` database created
+- [x] Database connection verified from Python (SQLAlchemy + psycopg2)
 
 ---
 
@@ -68,9 +74,6 @@ PostgreSQL setup is in progress.
 
 ### Environment
 
-- [ ] PostgreSQL running (Docker or local)
-- [ ] `voiceops` database created
-- [ ] Database connection verified from Python
 
 ### Backend
 
@@ -138,25 +141,22 @@ PostgreSQL setup is in progress.
 
 ## CURRENT BLOCKER
 
-PostgreSQL is not yet running.
-
-Decision pending: use Docker or local PostgreSQL 18 install.
+None. PostgreSQL environment blocker resolved 2026-09-11.
 
 ---
 
 ## CURRENT IMMEDIATE OBJECTIVE
 
-Get PostgreSQL running and verify a database connection.
+Build the FastAPI backend skeleton and a working `/health` endpoint
+that confirms both the API and the database connection are alive.
 
 Order:
 
-1. Decide PostgreSQL method (Docker recommended).
-2. Run PostgreSQL.
-3. Create `voiceops` database.
-4. Verify connection.
-5. Then create SQLAlchemy models.
-
----
+1. Install FastAPI + Uvicorn.
+2. Create backend structure (`database.py`, `main.py`).
+3. Implement `/health` endpoint.
+4. Verify locally.
+5. Then begin SQLAlchemy models.
 
 ## DO NOT DO YET
 
@@ -189,12 +189,11 @@ BUILD
 
 ---
 
+
+
 ## CURRENT NEXT ACTION
 
-Set up PostgreSQL.
-
-After that:
-database connection proof.
+Build FastAPI skeleton with /health endpoint.
 
 ---
 
@@ -216,8 +215,7 @@ Voice interaction:
 WORKING
 
 PostgreSQL:
-NOT RUNNING
-
+RUNNING (Docker, port 5433) — connection verified
 ---
 
 ## IMPORTANT PROJECT RULE

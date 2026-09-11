@@ -15,6 +15,14 @@ This is the project timeline.
 
 ---
 
+## 2026-09-11
+
+- PostgreSQL 18 running via Docker (container `voiceops-pg`, remapped to port 5433 after conflict with local Postgres 18 service on port 5432)
+- `voiceops` database created inside the container
+- SQLAlchemy, psycopg2-binary, python-dotenv installed in the 3.13.2 venv
+- `.env` created with `DATABASE_URL`, confirmed excluded via existing `.gitignore`
+- Database connection verified from Python (`test_db_connection.py`, `SELECT 1` succeeded)
+
 ## Pending
 
 - PostgreSQL setup (method TBD — Docker or local install)
