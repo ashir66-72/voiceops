@@ -62,6 +62,24 @@ Purpose: recover context quickly if a session is cut short.
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 ## Session 2026-09-11 — PostgreSQL Running + Connection Verified
 
 ### Goal
@@ -114,7 +132,56 @@ backend/` package: `__init__.py`, `database.py`, `main.py`
 ### Blockers Hit
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+## Session 2026-09-12 — Write Tools Complete (add_note, send_payment_reminder)
+
+### Goal
+- Implement add_note and send_payment_reminder per MASTER_SPEC §10 write-action rule
+- Verify success and failure paths for both
+
+### Decisions Made
+- Writes use POST, reads use GET — POST can't be triggered accidentally (browser prefetch, link bots), which matters for state-changing actions
+- Request validation moved to Pydantic models (`backend/schemas.py`) rather than manual checks in route functions — invalid JSON shape is rejected before it reaches business logic
+- `send_payment_reminder` only accepts payments with status `overdue` or `pending` — rejects `paid` payments with a 400, since reminding on a settled payment is a logic error, not a valid action
+- Response for `send_payment_reminder` explicitly includes a "simulated" disclosure string per ADR-006 — prevents the AssemblyAI agent from ever being able to claim a real message was sent
+- Confirmation-before-write (per MASTER_SPEC §10) is a conversation-level responsibility for the AssemblyAI agent, not something enforced in the backend — backend's job is strict validation + audit logging, not conversational flow control
+
+### What Got Built
+- `backend/schemas.py` — AddNoteRequest, SendPaymentReminderRequest
+- `add_note()` and `send_payment_reminder()` in `backend/tools.py`, both writing to `activity_log` on success
+- `POST /tools/add_note`, `POST /tools/send_payment_reminder` in `backend/main.py`
+
+### What Was Verified
+- `add_note` success: note created for Ahmed Khan (customer_id 1), returned note_id 2
+- `add_note` failure: customer_id 9999 → 404 with clear error message
+- `send_payment_reminder` success: payment_id 26 (Hina Riaz, overdue) → 200, reminder_sent_at set, "simulated" note present
+- `send_payment_reminder` failure: payment_id 1 (already paid) → 400, correct rejection reason
+- `send_payment_reminder` failure: payment_id 9999 (nonexistent) → 404
+
+### Blockers Hit
+- None
+
 ### Next Session
-- Build backend structure (FastAPI skeleton)
-- Add SQLAlchemy models for customers, products, orders, order_items, payments, notes, activity_log
-- Add `/health` endpoint
+- Begin AssemblyAI HTTP tool integration — connect the stored voice agent to these six endpoints
+- Expose local FastAPI server publicly (ngrok or equivalent) since AssemblyAI's cloud agent can't reach localhost directly
+- Wire and test one tool end-to-end via voice before wiring all six

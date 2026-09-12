@@ -1,9 +1,10 @@
-from fastapi import Depends, FastAPI, Query
+from fastapi import Depends, FastAPI, HTTPException, Query
 from sqlalchemy import text
 from sqlalchemy.orm import Session
 
 from backend import tools
 from backend.database import engine, get_db
+from backend.schemas import AddNoteRequest, SendPaymentReminderRequest
 
 app = FastAPI(title="VoiceOps Backend")
 
@@ -44,3 +45,22 @@ def get_best_sellers(
     db: Session = Depends(get_db),
 ):
     return {"best_sellers": tools.best_sellers(db, limit)}
+
+
+@app.post("/tools/add_note")
+def post_add_note(payload: AddNoteRequest, db: Session = Depends(get_db)):
+    result = tools.add_note(db, payload.customer_id, payload.content)
+    if not result["success"]:
+        raise HTTPException(status_code=404, detail=result["error"])
+    return result
+
+
+@app.post("/tools/send_payment_reminder")
+def post_send_payment_reminder(
+    payload: SendPaymentReminderRequest, db: Session = Depends(get_db)
+):
+    result = tools.send_payment_reminder(db, payload.payment_id)
+    if not result["success"]:
+        status_code = 404 if "No payment found" in result["error"] else 400
+        raise HTTPException(status_code=status_code, detail=result["error"])
+    return result

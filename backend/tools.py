@@ -1,7 +1,7 @@
 from sqlalchemy import func
 from sqlalchemy.orm import Session
-
-from backend.models import Customer, Order, OrderItem, Payment, Product
+from datetime import datetime, timezone
+from backend.models import ActivityLog, Customer, Note, Order, OrderItem, Payment, Product
 
 
 def business_snapshot(db: Session) -> dict:
@@ -83,3 +83,71 @@ def best_sellers(db: Session, limit: int = 5) -> list[dict]:
         }
         for product_id, name, total_quantity in rows
     ]
+    
+    
+def add_note(db: Session, customer_id: int, content: str) -> dict:
+    """Writes a note tied to a customer, then logs the action."""
+    customer = db.query(Customer).filter(Customer.id == customer_id).first()
+    if not customer:
+        return {"success": False, "error": f"No customer found with id {customer_id}"}
+
+    note = Note(customer_id=customer_id, content=content)
+    db.add(note)
+    db.flush()  # get note.id before logging
+
+    db.add(ActivityLog(
+        action_type="note_added",
+        description=f"Note added for {customer.name}: {content}",
+        related_customer_id=customer_id,
+    ))
+    db.commit()
+
+    return {
+        "success": True,
+        "note_id": note.id,
+        "customer_id": customer_id,
+        "customer_name": customer.name,
+        "content": note.content,
+    }
+
+
+def send_payment_reminder(db: Session, payment_id: int) -> dict:
+    """Records a simulated payment reminder — never sends a real message (ADR-006)."""
+    payment = db.query(Payment).filter(Payment.id == payment_id).first()
+    if not payment:
+        return {"success": False, "error": f"No payment found with id {payment_id}"}
+
+    if payment.status not in ("overdue", "pending"):
+        return {
+            "success": False,
+            "error": (
+                f"Payment {payment_id} has status '{payment.status}' — "
+                "reminders only apply to overdue or pending payments"
+            ),
+        }
+
+    order = db.query(Order).filter(Order.id == payment.order_id).first()
+    customer = db.query(Customer).filter(Customer.id == order.customer_id).first()
+
+    payment.reminder_sent_at = datetime.now(timezone.utc)
+
+    db.add(ActivityLog(
+        action_type="payment_reminder",
+        description=(
+            f"Simulated payment reminder recorded for {customer.name} — "
+            f"${float(payment.amount):.2f} (payment_id={payment.id})"
+        ),
+        related_customer_id=customer.id,
+    ))
+    db.commit()
+
+    return {
+        "success": True,
+        "payment_id": payment.id,
+        "customer_id": customer.id,
+        "customer_name": customer.name,
+        "amount": float(payment.amount),
+        "status": payment.status,
+        "reminder_sent_at": payment.reminder_sent_at.isoformat(),
+        "note": "Simulated reminder recorded in the system. No real message was sent.",
+    }

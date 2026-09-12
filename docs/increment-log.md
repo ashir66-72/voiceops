@@ -37,6 +37,17 @@ This is the project timeline.
 - Four routes wired into `backend/main.py`: `/tools/business_snapshot`, `/tools/find_customer`, `/tools/overdue_payments`, `/tools/best_sellers`
 - All four endpoints tested manually via curl — verified against known seed data values
 
+
+
+
+## 2026-09-12
+
+- `backend/schemas.py` created — Pydantic request models for write tools (AddNoteRequest, SendPaymentReminderRequest)
+- `add_note` and `send_payment_reminder` implemented in `backend/tools.py`, each creates an `activity_log` entry on success
+- Two POST routes wired into `backend/main.py`: `/tools/add_note`, `/tools/send_payment_reminder`
+- Both write tools tested for success and failure cases (invalid customer_id, invalid payment_id, wrong payment status) — all returned correct status codes and error messages
+- All six tools from ADR-005 now implemented and verified — backend business layer complete
+
 ## Pending
 
 

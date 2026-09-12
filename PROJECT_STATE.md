@@ -93,6 +93,8 @@ verified from Python. Backend build (FastAPI) starts next.
 - [x] find_customer
 - [x] overdue_payments
 - [x] best_sellers
+- [x] add_note
+- [x] send_payment_reminder
 
 
 
@@ -111,11 +113,6 @@ verified from Python. Backend build (FastAPI) starts next.
 
 
 
-### Tools
-
-
-- [ ] add_note
-- [ ] send_payment_reminder
 
 ### AssemblyAI integration
 
@@ -165,18 +162,16 @@ None. PostgreSQL environment blocker resolved 2026-09-11.
 
 ## CURRENT IMMEDIATE OBJECTIVE
 
-## CURRENT IMMEDIATE OBJECTIVE
-
-Build the two write tools per MASTER_SPEC §6 and §10: add_note and
-send_payment_reminder. Both must follow the write-action rule —
-identify target, read current state, confirm intent, execute, log.
+Connect the AssemblyAI Voice Agent to the FastAPI backend as HTTP tools,
+per ADR-004.
 
 Order:
 
-1. Implement add_note (simple write: customer_id + content → notes table).
-2. Implement send_payment_reminder (validate target payment exists and is overdue/pending, record simulated reminder, update reminder_sent_at).
-3. Both write tools create an activity_log entry on success.
-4. Test each with curl — including failure cases (invalid customer_id, invalid payment_id).
+1. Expose local FastAPI server via a public tunnel (ngrok or equivalent) — AssemblyAI's cloud cannot call localhost.
+2. Define one tool schema (start with business_snapshot) in the AssemblyAI agent config.
+3. Test that single tool end-to-end by voice: ask a question, confirm the agent calls the endpoint and speaks a real answer.
+4. Once one tool is proven working, wire the remaining five the same way.
+5. Confirm write tools respect the confirm-before-execute conversational flow (MASTER_SPEC §10) at the agent level.
 
 ## DO NOT DO YET
 
@@ -213,7 +208,7 @@ BUILD
 
 ## CURRENT NEXT ACTION
 
-Build add_note and send_payment_reminder write tools with activity_log entries.
+Set up a public tunnel to local FastAPI, then wire and test business_snapshot as the first AssemblyAI HTTP tool.
 ---
 
 ## LAST KNOWN WORKING STATE
