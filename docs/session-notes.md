@@ -158,6 +158,10 @@ backend/` package: `__init__.py`, `database.py`, `main.py`
 ### Goal
 - Implement add_note and send_payment_reminder per MASTER_SPEC §10 write-action rule
 - Verify success and failure paths for both
+- Register the six MASTER_SPEC tools with a stored AssemblyAI agent
+- Prove at least one full voice → tool → database → voice round trip actually works
+- Close the one remaining gap from last session: verify add_note works end-to-end by voice
+- Confirm write-tool confirmation flow behaves correctly for both write tools
 
 ### Decisions Made
 - Writes use POST, reads use GET — POST can't be triggered accidentally (browser prefetch, link bots), which matters for state-changing actions
@@ -165,11 +169,21 @@ backend/` package: `__init__.py`, `database.py`, `main.py`
 - `send_payment_reminder` only accepts payments with status `overdue` or `pending` — rejects `paid` payments with a 400, since reminding on a settled payment is a logic error, not a valid action
 - Response for `send_payment_reminder` explicitly includes a "simulated" disclosure string per ADR-006 — prevents the AssemblyAI agent from ever being able to claim a real message was sent
 - Confirmation-before-write (per MASTER_SPEC §10) is a conversation-level responsibility for the AssemblyAI agent, not something enforced in the backend — backend's job is strict validation + audit logging, not conversational flow control
+- Used AssemblyAI's REST API (`POST /v1/agents`) to create the stored agent, per current docs — dashboard "Agent" section is a separate AI code-assist tool, not where tool config lives
+- `headers` on HTTP tools must be a list of `{name, value}` objects, not a flat dict — corrected before writing the real config
+- ngrok-skip-browser-warning header added to every tool's HTTP config, since AssemblyAI's cloud calling the tunnel hits the same free-tier interstitial a normal script would
+- Used the already-cloned official `assemblyai-starter` (Python) repo's `import_agent.py` + `deployment/browser/server.py` for live testing instead of writing a custom WebSocket client — matches ARCHITECTURE.md's intended browser-token flow without reinventing it
+- Header values are write-only and don't round-trip through `import_agent.py` — the locally exported `.jsonc` file has a blank placeholder; the live agent still has the real value from creation. Do not run `publish.py` on the exported file until the header value is restored, or it will overwrite the working
+- Confirmed find_customer's exact-substring matching is working as designed (not a bug) — "Ahmad" correctly fails to match "Ahmed" in the database, agent correctly reports not found instead of guessing
+- No code changes made this session — this was a pure verification/testing session live config with a blank one
 
 ### What Got Built
 - `backend/schemas.py` — AddNoteRequest, SendPaymentReminderRequest
-- `add_note()` and `send_payment_reminder()` in `backend/tools.py`, both writing to `activity_log` on success
+- `add_note()` and `send_payment_reminder()` in `backend/tools.py`, both writing to `activity_log` on 
+- Nothing new — this session was entirely testing against the existing six toolssuccess
 - `POST /tools/add_note`, `POST /tools/send_payment_reminder` in `backend/main.py`
+- `backend/register_agent.py` — creates the stored agent with all six tools wired to the FastAPI backend
+- `agents/voiceops-urban-bites.jsonc` — local snapshot of the agent config (headers incomplete, do not publish as-is)
 
 ### What Was Verified
 - `add_note` success: note created for Ahmed Khan (customer_id 1), returned note_id 2
@@ -177,11 +191,22 @@ backend/` package: `__init__.py`, `database.py`, `main.py`
 - `send_payment_reminder` success: payment_id 26 (Hina Riaz, overdue) → 200, reminder_sent_at set, "simulated" note present
 - `send_payment_reminder` failure: payment_id 1 (already paid) → 400, correct rejection reason
 - `send_payment_reminder` failure: payment_id 9999 (nonexistent) → 404
+- Agent created successfully: `agent_id = agent_bed2d6e92dfc45e6b20688d91a674884`
+- Live browser voice test via `localhost:3000` (assemblyai-starter): asked "give me today's business summary" → `business_snapshot` tool fired → agent spoke back 10 customers, 30 orders, $502.50 revenue, 6 overdue payments totaling $100.50 — exact match to seeded data
+- Asked "what was the best-selling product" → `best_sellers` tool fired → agent correctly answered Chicken Biryani
+- Noticeable latency (~230ms+ per ngrok hop, plus full tool round trip) attributed to ngrok free tier + cross-region distance to AssemblyAI servers, not application logic
+- add_note called twice via voice, both times only after explicit user confirmation ("Is that okay?" → "Yeah, it's okay" / confirmed before execution)
+- SQL verification: `activity_log` shows two real `note_added` entries (ids 7, 8) for Ahmed Khan (customer_id 1), content matching exactly what was dictated by voice
+- All six tools from ADR-005 now confirmed working through the full voice → AssemblyAI → FastAPI → PostgreSQL → spoken response loop
+- Confirmation-before-write behavior (MASTER_SPEC §10) verified working correctly for both add_note and send_payment_reminder without needing to hardcode it in the backend — the system_prompt instruction is sufficient
+
 
 ### Blockers Hit
-- None
+- Repeated STT misfires on non-English audio fragments (Hindi, Japanese) interrupted one test attempt mid-confirmation — resolved by simply retrying the request cleanly; no code issue, environmental/mic noise
+- Latency spiked severely (up to ~18s) during a run of consecutive failed searches — confirmed as a compounding effect of ngrok free tier + cross-region distance to AssemblyAI's servers, not a backend performance issue (backend itself responds instantly in every direct test)
 
 ### Next Session
-- Begin AssemblyAI HTTP tool integration — connect the stored voice agent to these six endpoints
-- Expose local FastAPI server publicly (ngrok or equivalent) since AssemblyAI's cloud agent can't reach localhost directly
-- Wire and test one tool end-to-end via voice before wiring all six
+- Decide: move off ngrok to real hosting (reduces latency, removes single point of failure ahead of demo) vs. begin the React dashboard (MASTER_SPEC required deliverable)
+- If hosting: evaluate Render or Railway free tier for FastAPI + PostgreSQL
+- If dashboard: scaffold React + Tailwind project, build transcript/KPI/activity-log views per ARCHITECTURE.md §8
+- Begin evaluating real hosting (Render/Railway free tier) to replace ngrok and reduce latency for the final demo

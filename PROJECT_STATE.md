@@ -1,7 +1,7 @@
 # VoiceOps — Current Project State
 
 Last Updated:
-2026-09-09
+2026-09-12
 
 
 
@@ -13,20 +13,30 @@ Phase 2 — Environment + Database Foundation
 
 ---
 
+
 ## PROJECT STATUS
 
-VoiceOps is actively being built.
-
-The AssemblyAI voice loop has already been successfully demonstrated.
-
-Python 3.13.2 environment is ready.
-
-PostgreSQL is running in Docker and a database connection has been
-verified from Python. Backend build (FastAPI) starts next.
+VoiceOps's backend and AssemblyAI integration are functionally complete
+and fully verified. All six MVP tools work correctly through real voice
+interaction, with confirmation-before-write behavior and full audit
+logging confirmed. Remaining work is deployment (replacing ngrok) and
+the React dashboard — no backend logic work remains for the MVP tool set.
 
 ---
 
 ## COMPLETED
+
+
+### AssemblyAI Integration
+- [x] Stored agent created with all six tools (`agent_bed2d6e92dfc45e6b20688d91a674884`)
+- [x] Public tunnel (ngrok) proven reachable from AssemblyAI's cloud
+- [x] All six tools verified working end-to-end by real voice interaction
+- [x] Confirmation-before-write behavior verified for add_note and send_payment_reminder
+- [x] Write-tool database effects verified directly via SQL (not just spoken confirmation)
+
+
+
+
 
 ### Planning
 
@@ -114,13 +124,7 @@ verified from Python. Backend build (FastAPI) starts next.
 
 
 
-### AssemblyAI integration
 
-- [ ] Stored VoiceOps agent configuration
-- [ ] HTTP tool definitions
-- [ ] First HTTP tool
-- [ ] All six tools
-- [ ] End-to-end tool loop
 
 ### Frontend
 
@@ -160,32 +164,26 @@ None. PostgreSQL environment blocker resolved 2026-09-11.
 
 ---
 
+
+
 ## CURRENT IMMEDIATE OBJECTIVE
 
-Connect the AssemblyAI Voice Agent to the FastAPI backend as HTTP tools,
-per ADR-004.
-
-Order:
-
-1. Expose local FastAPI server via a public tunnel (ngrok or equivalent) — AssemblyAI's cloud cannot call localhost.
-2. Define one tool schema (start with business_snapshot) in the AssemblyAI agent config.
-3. Test that single tool end-to-end by voice: ask a question, confirm the agent calls the endpoint and speaks a real answer.
-4. Once one tool is proven working, wire the remaining five the same way.
-5. Confirm write tools respect the confirm-before-execute conversational flow (MASTER_SPEC §10) at the agent level.
+Choose the next major phase: real deployment (replace ngrok, reduce
+latency, satisfy MASTER_SPEC §6 hosting requirement) or the React
+dashboard (transcript, KPIs, activity log, per ARCHITECTURE.md §8).
+Both are required before submission — order depends on priority.
 
 ## DO NOT DO YET
 
 Do not:
 
 - build React
-- build six tools
+\
 - configure production deployment
 - add new features
 - change database architecture
 - add external messaging
 - add Redis/Kafka/Kubernetes
-- rewrite the AssemblyAI starter
-- expose the AssemblyAI API key
 - commit .env
 
 ---
@@ -208,7 +206,7 @@ BUILD
 
 ## CURRENT NEXT ACTION
 
-Set up a public tunnel to local FastAPI, then wire and test business_snapshot as the first AssemblyAI HTTP tool.
+Decide next phase: hosting migration vs. React dashboard, then begin it.
 ---
 
 ## LAST KNOWN WORKING STATE

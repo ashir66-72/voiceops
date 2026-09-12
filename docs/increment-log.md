@@ -47,6 +47,16 @@ This is the project timeline.
 - Two POST routes wired into `backend/main.py`: `/tools/add_note`, `/tools/send_payment_reminder`
 - Both write tools tested for success and failure cases (invalid customer_id, invalid payment_id, wrong payment status) — all returned correct status codes and error messages
 - All six tools from ADR-005 now implemented and verified — backend business layer complete
+- AssemblyAI stored agent "VoiceOps — Urban Bites" created via `backend/register_agent.py`, agent_id saved to `.env`
+- All six tools registered as HTTP tools on the stored agent, each pointed at the local FastAPI backend through the ngrok tunnel
+- Agent imported into `assemblyai-starter` for live browser testing (`agents/voiceops-urban-bites.jsonc`)
+- End-to-end voice test successful: real voice request → AssemblyAI tool call → FastAPI → PostgreSQL → spoken response, verified for `business_snapshot` and `best_sellers` — all figures matched seed data exactly
+- Noted latency source: ngrok free tier + cross-region distance to AssemblyAI's servers — expected to improve after moving off ngrok to real hosting
+- All six MASTER_SPEC tools now verified working end-to-end by real voice interaction: business_snapshot, best_sellers, find_customer, overdue_payments, send_payment_reminder, add_note
+- Confirmed find_customer correctly rejects near-miss spellings ("Ahmad" vs "Ahmed") rather than guessing — matches Quality Rule "admit missing data"
+- Confirmed both write tools (add_note, send_payment_reminder) pause for explicit user confirmation before executing, per MASTER_SPEC §10
+- Verified add_note writes via direct SQL check on notes and activity_log tables (two real entries, ids 7 and 8, correct customer_id and content)
+- Observed severe latency spikes (up to ~18s) during multi-turn retries, isolated to ngrok free tier + cross-region network distance, not application logic
 
 ## Pending
 
