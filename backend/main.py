@@ -1,3 +1,5 @@
+import os
+import requests
 from fastapi import Depends, FastAPI, HTTPException, Query
 from sqlalchemy import text
 from sqlalchemy.orm import Session
@@ -64,3 +66,19 @@ def post_send_payment_reminder(
         status_code = 404 if "No payment found" in result["error"] else 400
         raise HTTPException(status_code=status_code, detail=result["error"])
     return result
+
+@app.get("/api/voice-token")
+def get_voice_token():
+    api_key = os.getenv("ASSEMBLYAI_API_KEY")
+    if not api_key:
+        raise HTTPException(status_code=500, detail="ASSEMBLYAI_API_KEY not configured on server")
+
+    resp = requests.get(
+        "https://agents.assemblyai.com/v1/token",
+        headers={"Authorization": api_key},
+        params={"expires_in_seconds": 60},
+    )
+    if resp.status_code != 200:
+        raise HTTPException(status_code=502, detail="Could not mint voice token")
+
+    return resp.json()

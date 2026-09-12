@@ -151,3 +151,23 @@ def send_payment_reminder(db: Session, payment_id: int) -> dict:
         "reminder_sent_at": payment.reminder_sent_at.isoformat(),
         "note": "Simulated reminder recorded in the system. No real message was sent.",
     }
+    
+    
+def recent_activity(db: Session, limit: int = 20) -> list[dict]:
+    """Most recent audit-log entries, for the dashboard's activity feed."""
+    rows = (
+        db.query(ActivityLog)
+        .order_by(ActivityLog.created_at.desc())
+        .limit(limit)
+        .all()
+    )
+    return [
+        {
+            "id": row.id,
+            "action_type": row.action_type,
+            "description": row.description,
+            "related_customer_id": row.related_customer_id,
+            "created_at": row.created_at.isoformat(),
+        }
+        for row in rows
+    ]

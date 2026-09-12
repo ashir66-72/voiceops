@@ -84,6 +84,8 @@ the React dashboard — no backend logic work remains for the MVP tool set.
 - [x] database connection (wired into FastAPI via `backend/database.py`)
 - [x] FastAPI
 - [x] /health endpoint
+- [x] `/api/voice-token` endpoint (server-side token minting per ARCHITECTURE.md §4)
+- [x] `/tools/activity_log` endpoint (dashboard-only, not a voice tool)
 
 
 ### Database Schema
@@ -168,10 +170,17 @@ None. PostgreSQL environment blocker resolved 2026-09-11.
 
 ## CURRENT IMMEDIATE OBJECTIVE
 
-Choose the next major phase: real deployment (replace ngrok, reduce
-latency, satisfy MASTER_SPEC §6 hosting requirement) or the React
-dashboard (transcript, KPIs, activity log, per ARCHITECTURE.md §8).
-Both are required before submission — order depends on priority.
+Scaffold the React + Tailwind dashboard (Vite), reusing the proven
+audio engine from assemblyai-starter/deployment/browser/app.js,
+connected to our own FastAPI backend for tokens and data.
+
+Order:
+1. Run `npm create vite@latest frontend -- --template react`.
+2. Install and configure Tailwind.
+3. Port the audio worklet + WebSocket logic from app.js into a React hook/component.
+4. Point token fetch at /api/voice-token, hardcode the known agent_id.
+5. Verify voice call still works from the new React app before adding dashboard panels.
+6. Add KPI cards, best-sellers, activity-log panels once the core call works.
 
 ## DO NOT DO YET
 
@@ -206,7 +215,7 @@ BUILD
 
 ## CURRENT NEXT ACTION
 
-Decide next phase: hosting migration vs. React dashboard, then begin it.
+Scaffold the Vite + React + Tailwind project in a new frontend/ folder.
 ---
 
 ## LAST KNOWN WORKING STATE

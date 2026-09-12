@@ -162,6 +162,7 @@ backend/` package: `__init__.py`, `database.py`, `main.py`
 - Prove at least one full voice → tool → database → voice round trip actually works
 - Close the one remaining gap from last session: verify add_note works end-to-end by voice
 - Confirm write-tool confirmation flow behaves correctly for both write tools
+- Add the two backend pieces the React dashboard will depend on: a proper token-minting route per ARCHITECTURE.md §4, and a read endpoint for the activity log per §8
 
 ### Decisions Made
 - Writes use POST, reads use GET — POST can't be triggered accidentally (browser prefetch, link bots), which matters for state-changing actions
@@ -184,6 +185,11 @@ backend/` package: `__init__.py`, `database.py`, `main.py`
 - `POST /tools/add_note`, `POST /tools/send_payment_reminder` in `backend/main.py`
 - `backend/register_agent.py` — creates the stored agent with all six tools wired to the FastAPI backend
 - `agents/voiceops-urban-bites.jsonc` — local snapshot of the agent config (headers incomplete, do not publish as-is)
+- Token minting moved into FastAPI (`/api/voice-token`) instead of relying on the starter's standalone `server.py` — matches the documented architecture where FastAPI is the trusted boundary, not a second ad hoc server
+- `/tools/activity_log` treated as a dashboard-facing endpoint, not a seventh voice tool — it's never registered with AssemblyAI, so it doesn't conflict with ADR-005's six-tool freeze
+- Plan going forward: reuse `assemblyai-starter/deployment/browser/app.js`'s audio engine (worklets, WebSocket handling) inside the new React app rather than rewriting proven code; do not reuse `server.py` itself
+- `GET /api/voice-token` in `backend/main.py` — calls AssemblyAI's `/v1/token` server-side, returns a 60-second token to the browser
+- `GET /tools/activity_log` in `backend/main.py` + `recent_activity()` in `backend/tools.py`
 
 ### What Was Verified
 - `add_note` success: note created for Ahmed Khan (customer_id 1), returned note_id 2
@@ -199,14 +205,21 @@ backend/` package: `__init__.py`, `database.py`, `main.py`
 - SQL verification: `activity_log` shows two real `note_added` entries (ids 7, 8) for Ahmed Khan (customer_id 1), content matching exactly what was dictated by voice
 - All six tools from ADR-005 now confirmed working through the full voice → AssemblyAI → FastAPI → PostgreSQL → spoken response loop
 - Confirmation-before-write behavior (MASTER_SPEC §10) verified working correctly for both add_note and send_payment_reminder without needing to hardcode it in the backend — the system_prompt instruction is sufficient
+- `/tools/activity_log` returned real recent entries (note_added, payment_reminder) on first try
+- `/api/voice-token` initially failed with 502; added temporary debug logging, found the real cause via AssemblyAI's own error body (422, missing `expires_in_seconds`), fixed, confirmed 200 with a real token, then removed debug logging
 
 
 ### Blockers Hit
 - Repeated STT misfires on non-English audio fragments (Hindi, Japanese) interrupted one test attempt mid-confirmation — resolved by simply retrying the request cleanly; no code issue, environmental/mic noise
 - Latency spiked severely (up to ~18s) during a run of consecutive failed searches — confirmed as a compounding effect of ngrok free tier + cross-region distance to AssemblyAI's servers, not a backend performance issue (backend itself responds instantly in every direct test)
+- AssemblyAI's `/v1/token` endpoint requires `expires_in_seconds` as a query param — not obvious from the example I initially checked, only surfaced by reading the API's actual error response directly
 
 ### Next Session
 - Decide: move off ngrok to real hosting (reduces latency, removes single point of failure ahead of demo) vs. begin the React dashboard (MASTER_SPEC required deliverable)
 - If hosting: evaluate Render or Railway free tier for FastAPI + PostgreSQL
 - If dashboard: scaffold React + Tailwind project, build transcript/KPI/activity-log views per ARCHITECTURE.md §8
 - Begin evaluating real hosting (Render/Railway free tier) to replace ngrok and reduce latency for the final demo
+- Scaffold a new Vite + React + Tailwind project (`frontend/`)
+- Port `app.js`'s audio worklet + WebSocket logic into a React component, pointed at our own `/api/voice-token` instead of the starter's `/token`
+- Hardcode/env the known `agent_id` directly (no need for the starter's publish/resolve logic — our agent already exists)
+- Build KPI cards (business_snapshot), best-sellers panel, and activity-log panel around the voice component

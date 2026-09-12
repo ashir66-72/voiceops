@@ -57,6 +57,10 @@ This is the project timeline.
 - Confirmed both write tools (add_note, send_payment_reminder) pause for explicit user confirmation before executing, per MASTER_SPEC §10
 - Verified add_note writes via direct SQL check on notes and activity_log tables (two real entries, ids 7 and 8, correct customer_id and content)
 - Observed severe latency spikes (up to ~18s) during multi-turn retries, isolated to ngrok free tier + cross-region network distance, not application logic
+- `GET /api/voice-token` added to FastAPI backend — mints short-lived AssemblyAI tokens server-side, per ARCHITECTURE.md §4 (browser never touches the permanent API key)
+- `GET /tools/activity_log` added — dashboard-only read endpoint (not exposed to the voice agent, does not count against ADR-005's six-tool freeze), returns recent audit-log entries
+- Fixed: AssemblyAI's token endpoint requires `expires_in_seconds` as a query parameter — omitting it caused a 422, surfaced via temporary debug logging
+- Backend now has everything the React dashboard needs: token minting, activity log, plus the existing six tools
 
 ## Pending
 
