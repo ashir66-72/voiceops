@@ -7,8 +7,15 @@ from sqlalchemy.orm import Session
 from backend import tools
 from backend.database import engine, get_db
 from backend.schemas import AddNoteRequest, SendPaymentReminderRequest
+from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI(title="VoiceOps Backend")
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:5173", "http://127.0.0.1:5173"],
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 
 @app.get("/health")
@@ -82,3 +89,7 @@ def get_voice_token():
         raise HTTPException(status_code=502, detail="Could not mint voice token")
 
     return resp.json()
+
+@app.get("/tools/activity_log")
+def get_activity_log(limit: int = Query(20, ge=1, le=100), db: Session = Depends(get_db)):
+    return {"activity_log": tools.recent_activity(db, limit)}

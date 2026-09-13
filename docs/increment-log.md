@@ -62,18 +62,26 @@ This is the project timeline.
 - Fixed: AssemblyAI's token endpoint requires `expires_in_seconds` as a query parameter — omitting it caused a 422, surfaced via temporary debug logging
 - Backend now has everything the React dashboard needs: token minting, activity log, plus the existing six tools
 
+
 ## Pending
 
 
-- SQLAlchemy models
-- Seed data
-- Business tools
-- AssemblyAI HTTP tool integration
-- React dashboard
-- Deployment
-- Submission package
 
 ---
+
+
+
+
+## 2026-9-13
+
+- Ported `app.js`'s audio worklet + WebSocket voice engine into a React hook (`useVoiceAgent.js`)
+- Built full dashboard UI in React + Tailwind: call control, live transcript, KPI strip, best-sellers, overdue payments, activity log
+- Added CORS middleware to FastAPI backend so the React dev server (port 5173) can call the API (port 8000)
+- Fixed missing `/tools/activity_log` route that was causing a full dashboard crash on load
+- Verified live voice call works end-to-end from the new React dashboard: real question, real tool call, correct spoken answer, live KPI panel
+- Noted latency (~few seconds to connect, few seconds to first spoken word) — confirmed as the same root cause already logged (ngrok + cross-region distance to AssemblyAI), not a regression from the React port
+
+
 
 ## Rules
 
