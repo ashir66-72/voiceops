@@ -202,3 +202,23 @@ event buses
 unless a real requirement appears.
 
 VoiceOps v1 is intentionally small.
+
+---
+
+## 10. Production Topology
+
+Dashboard (Render static site):
+https://voiceops-ffl0.onrender.com
+
+API (Render web service):
+https://voiceops-api-ml1i.onrender.com
+
+Canonical agent:
+agent_0b8e9da298d542c6989819231c753a01
+
+The dashboard calls the API using `VITE_BACKEND_URL`, which is baked into
+the Vite build. Changing that value requires a static-site rebuild.
+
+Backend CORS must allow the dashboard origin.
+
+`/tools/activity_log` is dashboard-only. It is not a seventh voice tool.
