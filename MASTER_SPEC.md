@@ -12,10 +12,10 @@ Target:
 A working, demo-ready voice business operator.
 
 Status:
-Development
+Development — deployed demo live; submission packaging remaining
 
 Current Date:
-2026-09-09
+2026-09-14
 
 ---
 
@@ -214,9 +214,9 @@ Version Control:
 Git + GitHub
 
 Hosting:
-Managed PostgreSQL
-Managed FastAPI hosting
-Vercel or equivalent frontend hosting
+Render PostgreSQL
+Render FastAPI web service
+Render static site for the React dashboard
 
 ---
 
@@ -319,38 +319,37 @@ A feature is considered complete only when:
 ## 17. Current Project Phase
 
 Phase:
-Environment and database foundation
+Deployed demo live; submission packaging remaining
 
 Completed:
 
-- AssemblyAI account
-- AssemblyAI API key
-- Official AssemblyAI starter
-- Stored agent
-- Browser voice loop
-- Microphone input
-- Spoken response
-- Project documentation files
+- AssemblyAI account and stored agent
+- Browser voice loop with microphone and spoken response
+- PostgreSQL + SQLAlchemy models + Urban Bites seed data
+- FastAPI backend and all six tools
+- Confirmation-before-write on write tools
+- React dashboard (KPIs, transcript, activity log)
+- Hosted Postgres, API, and dashboard on Render
+- Public demo URL
 
 Not yet completed:
 
-- Python 3.11 environment
-- PostgreSQL installation
-- PostgreSQL database
-- SQLAlchemy models
-- FastAPI backend
-- Business tools
-- React dashboard
-- Deployment
-- Final demo
-- Submission package
+- Clean-room / mobile verification of the public URL
+- Public GitHub README
+- Architecture diagram for judges
+- Screenshots and cover image
+- Demo video
+- Presentation slides
+- Lablab submission
 
 ---
 
 ## 18. Current Immediate Goal
 
-Establish the development environment and create the PostgreSQL foundation
-without changing the product architecture.
+Verify the public dashboard on a second device, then write a public
+README so judges can understand the project from GitHub.
+
+Do not add a seventh voice tool until ADR-005 is explicitly amended.
 
 ---
 
