@@ -102,6 +102,12 @@ This is the project timeline.
 - `frontend/.env` updated: correct agent_id, `VITE_BACKEND_URL` switched from localhost to the live Render URL
 - Verified full end-to-end voice call through the React dashboard talking entirely to Render — zero local dependencies (no uvicorn, no Docker, no ngrok) — including a multi-tool question requiring the agent to combine two `best_sellers`/lookup results and compute a correct sum
 - Latency improved substantially versus the ngrok-based setup, confirming the migration's purpose
+- Deployed React dashboard as Render Static Site `voiceops-ffl0` (root directory `frontend`, build `npm run build`, publish `dist`)
+- Added live frontend origin `https://voiceops-ffl0.onrender.com` to FastAPI CORS `allow_origins`
+- First public dashboard load failed: Vite baked `VITE_BACKEND_URL` as the static-site URL instead of `https://voiceops-api-ml1i.onrender.com`, so KPI fetches and `/api/voice-token` 404'd on the static host (CORS was already correct)
+- Fixed by setting Render static-site env `VITE_BACKEND_URL` + `VITE_ASSEMBLYAI_AGENT_ID` and rebuilding (Vite env is build-time, not runtime)
+- Verified public dashboard KPIs populate from production Postgres and Start call works on https://voiceops-ffl0.onrender.com
+- MASTER_SPEC required feature "Deployed demo" is now satisfied
 
 
 
