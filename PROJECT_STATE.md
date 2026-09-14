@@ -109,7 +109,10 @@ Backend's fully ready now — token minting, activity log, and all six tools. Ne
 - [x] add_note
 - [x] send_payment_reminder
 
-
+### Deployment
+- [x] Managed PostgreSQL (Render, free tier)
+- [x] Hosted FastAPI backend (Render, auto-deploy from GitHub)
+- [x] Production agent configuration (six tools pointed at live Render URL)
 
 
 
@@ -140,11 +143,8 @@ Backend's fully ready now — token minting, activity log, and all six tools. Ne
 
 ### Deployment
 
-- [ ] managed PostgreSQL
-- [ ] hosted FastAPI
+
 - [ ] hosted frontend
-- [ ] temporary voice token endpoint
-- [ ] production agent configuration
 - [ ] clean-room test
 
 ### Submission
@@ -171,9 +171,11 @@ None. PostgreSQL environment blocker resolved 2026-09-11.
 
 ## CURRENT IMMEDIATE OBJECTIVE
 
-React dashboard is functionally complete and voice-verified. Move to
-hosting migration next — real, felt latency during today's dashboard
-testing confirms this is now the priority over further UI work.
+Deploy the React frontend as a Render Static Site, then update backend
+CORS to allow the real deployed frontend origin. This completes
+MASTER_SPEC's "Deployed demo" requirement.
+
+
 
 ## DO NOT DO YET
 

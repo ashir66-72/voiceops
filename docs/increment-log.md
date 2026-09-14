@@ -83,6 +83,28 @@ This is the project timeline.
 
 
 
+
+
+
+
+
+
+
+
+##  2026-9-14
+
+- Created Render Postgres (`voiceops-db`, free tier, expires 2026-10-13) and Render Web Service (`voiceops-api`), connected to GitHub repo for auto-deploy on push
+- `requirements.txt` added to repo root, confirmed working via successful Render build
+- Database schema and Urban Bites seed data migrated to Render Postgres (create_tables.py + seed_data.py run against the remote DB via temporary local .env repoint)
+- Verified live: `/health` and `/tools/business_snapshot` both confirmed working directly against the deployed Render URL
+- Discovered and resolved an agent duplication: a second AssemblyAI agent had been created via a parallel session with another assistant while rate-limited; adopted `agent_0b8e9da298d542c6989819231c753a01` as the single canonical agent going forward
+- `register_agent.py` rewritten from POST (create) to PUT (update-in-place) targeting the correct agent_id; tool URLs repointed from ngrok to the live Render backend; ngrok-only header removed
+- `frontend/.env` updated: correct agent_id, `VITE_BACKEND_URL` switched from localhost to the live Render URL
+- Verified full end-to-end voice call through the React dashboard talking entirely to Render — zero local dependencies (no uvicorn, no Docker, no ngrok) — including a multi-tool question requiring the agent to combine two `best_sellers`/lookup results and compute a correct sum
+- Latency improved substantially versus the ngrok-based setup, confirming the migration's purpose
+
+
+
 ## Rules
 
 - One line per completed increment.

@@ -223,3 +223,62 @@ backend/` package: `__init__.py`, `database.py`, `main.py`
 - Port `app.js`'s audio worklet + WebSocket logic into a React component, pointed at our own `/api/voice-token` instead of the starter's `/token`
 - Hardcode/env the known `agent_id` directly (no need for the starter's publish/resolve logic — our agent already exists)
 - Build KPI cards (business_snapshot), best-sellers panel, and activity-log panel around the voice component
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+## Session 2026-09-13 — Hosting Migration to Render (Backend + Database)
+
+### Goal
+- Replace local Docker Postgres + ngrok/local uvicorn with permanent, real hosting
+- Eliminate the latency bottleneck identified during React dashboard testing
+
+### Decisions Made
+- Chose Render over Railway: genuinely free tier, no credit card required, matches budget constraint
+- Free-tier tradeoffs accepted knowingly: web service spins down after 15 min idle (~30-50s cold start), Postgres free tier expires ~30 days (2026-10-13) — acceptable for hackathon timeline
+- Used PUT (not POST) to update the existing AssemblyAI agent in place, avoiding further duplicate agents
+- Standardized on `agent_0b8e9da298d542c6989819231c753a01` as the single source of truth going forward; older agent left dormant, not deleted yet
+- Local `.env` temporarily repointed at the Render database to run one-off schema/seed scripts, then switched back to local Docker for continued local development — production and local dev environments now cleanly separated
+
+### What Got Built
+- `requirements.txt` (repo root)
+- Render Postgres instance (`voiceops-db`)
+- Render Web Service (`voiceops-api`), auto-deploying from GitHub on push
+- Updated `backend/register_agent.py` — PUT-based agent update, Render URLs, no ngrok header
+- Updated `frontend/.env` — correct agent_id and live backend URL
+
+### What Was Verified
+- `GET /health` on live Render URL → `{"status":"ok","database":"connected"}`
+- `GET /tools/business_snapshot` on live Render URL → real seeded data (10 customers, 30 orders, $502.50, 6 overdue)
+- Full voice call tested through the React dashboard against the fully-hosted stack: `best_sellers` called correctly with a `limit` parameter, then a compound question triggered two tool calls and the agent correctly summed the results (35 + 10 = 45)
+- No local services (uvicorn, Docker, ngrok) were running during this test — confirms the hosted stack is genuinely self-sufficient
+
+### Blockers Hit
+- Agent duplication from parallel use of a different assistant during a rate-limit window — resolved by standardizing on one agent_id and rewriting the registration script to update rather than create
+
+### Next Session
+- Deploy the React frontend itself as a Render Static Site (currently only the backend + database are hosted; the dashboard still runs on local Vite dev server)
+- Update backend CORS `allow_origins` to include the deployed frontend's real URL once known
+- Once frontend is hosted too, VoiceOps has a genuine public demo URL — required for MASTER_SPEC's "Deployed demo" and for recording the final demo video
