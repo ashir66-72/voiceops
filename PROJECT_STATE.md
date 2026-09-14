@@ -1,61 +1,63 @@
 # VoiceOps — Current Project State
 
 Last Updated:
-2026-09-12
-
-
+2026-09-14
 
 ---
 
 ## CURRENT PHASE
 
-Phase 2 — Environment + Database Foundation
+Phase 4 — Deployed demo complete; submission packaging next
 
 ---
 
-
 ## PROJECT STATUS
 
-VoiceOps's backend and AssemblyAI integration are functionally complete
-and fully verified. All six MVP tools work correctly through real voice
-interaction, with confirmation-before-write behavior and full audit
-logging confirmed. Remaining work is deployment (replacing ngrok) and
-the React dashboard — no backend logic work remains for the MVP tool set.
+VoiceOps is live end-to-end with no local services required.
+
+Backend, Postgres, AssemblyAI agent, and React dashboard are all hosted.
+All six MVP tools remain the voice-agent tool set. The public demo URL
+works: KPIs load from production data and Start call connects through
+server-minted tokens.
+
+Remaining work is submission packaging (README, screenshots, demo video,
+slides, Lablab form) plus a clean-room/mobile check. New product features
+are not started until ADR-005 is reviewed on purpose.
+
+---
+
+## LIVE URLS
+
+- Dashboard: https://voiceops-ffl0.onrender.com
+- API: https://voiceops-api-ml1i.onrender.com
+- Canonical agent: `agent_0b8e9da298d542c6989819231c753a01`
+- GitHub: https://github.com/ashir66-72/voiceops
 
 ---
 
 ## COMPLETED
-
-
-### AssemblyAI Integration
-- [x] Stored agent created with all six tools (`agent_bed2d6e92dfc45e6b20688d91a674884`)
-- [x] Public tunnel (ngrok) proven reachable from AssemblyAI's cloud
-- [x] All six tools verified working end-to-end by real voice interaction
-- [x] Confirmation-before-write behavior verified for add_note and send_payment_reminder
-- [x] Write-tool database effects verified directly via SQL (not just spoken confirmation)
-
-
-
-
 
 ### Planning
 
 - [x] Product idea selected
 - [x] MVP defined
 - [x] Architecture defined
-- [x] Six-tool scope frozen
+- [x] Six-tool scope frozen (ADR-005)
 - [x] Urban Bites demo business selected
 - [x] Development methodology selected
 
 ### AssemblyAI
 
 - [x] AssemblyAI account
-- [x] API key
-- [x] Official AssemblyAI starter
-- [x] Agent published
-- [x] Browser app running
-- [x] Microphone works
-- [x] Agent responds with voice
+- [x] API key (server-side only)
+- [x] Official AssemblyAI starter (local proof)
+- [x] Stored agent published
+- [x] Canonical production agent adopted (`agent_0b8e9da298d542c6989819231c753a01`)
+- [x] Browser microphone + spoken response
+- [x] All six tools verified by real voice
+- [x] Confirmation-before-write verified for add_note and send_payment_reminder
+- [x] Write-tool database effects verified via SQL
+- [x] Production agent tool URLs pointed at live Render API
 
 ### Documentation
 
@@ -66,42 +68,37 @@ the React dashboard — no backend logic work remains for the MVP tool set.
 - [x] docs/increment-log.md
 - [x] docs/session-notes.md
 
-### Environment
+### Environment (local)
 
-- [x] Python 3.13.2 virtual environment created
-- [x] Old Python 3.10 venv replaced
-- [x] Docker verified available (version 29.7.2)
-- [x] PostgreSQL 18 detected on system (not in PATH)
-- [x] Git repository initialized
-- [x] First commit made
-- [x] PostgreSQL running (Docker, container `voiceops-pg`, port 5433)
-- [x] `voiceops` database created
-- [x] Database connection verified from Python (SQLAlchemy + psycopg2)
+- [x] Python 3.13.2 virtual environment
+- [x] Git repository + GitHub remote
+- [x] Local Docker Postgres (`voiceops-pg`, port 5433) for local work
+- [x] Database connection verified from Python
 
+### Backend
 
-### backend 
-- [x] backend structure
-- [x] database connection (wired into FastAPI via `backend/database.py`)
-- [x] FastAPI
-- [x] /health endpoint
-- [x] `/api/voice-token` endpoint (server-side token minting per ARCHITECTURE.md §4)
-- [x] `/tools/activity_log` endpoint (dashboard-only, not a voice tool)
-Backend's fully ready now — token minting, activity log, and all six tools. Next real step is scaffolding the frontend
-
+- [x] FastAPI app
+- [x] `/health`
+- [x] `/api/voice-token` (short-lived token minting; browser never gets ASSEMBLYAI_API_KEY)
+- [x] `/tools/activity_log` (dashboard-only, not a voice tool)
+- [x] All six MVP tool routes
+- [x] CORS allow-list includes localhost and the live dashboard origin
 
 ### Database Schema
-- [x] SQLAlchemy models for all 7 tables (customers, products, orders, order_items, payments, notes, activity_log)
-- [x] Foreign key relationships defined
-- [x] Tables created in `voiceops` database and verified
 
+- [x] SQLAlchemy models for all 7 tables
+- [x] Foreign keys defined
+- [x] Tables created and seeded (local + Render)
 
-### data 
+### Data
+
 - [x] Urban Bites seed data (`seed_data.py`) — deterministic, rerunnable
-- [x] Database verification (row counts, payment status split, best-seller check)
-
-
+- [x] Verified: 10 customers, 6 products, 30 orders, 55 order_items, 30 payments
+- [x] Payment split: 20 paid / 6 overdue / 4 pending
+- [x] Best-seller: Chicken Biryani (35 units)
 
 ### Tools
+
 - [x] business_snapshot
 - [x] find_customer
 - [x] overdue_payments
@@ -109,86 +106,80 @@ Backend's fully ready now — token minting, activity log, and all six tools. Ne
 - [x] add_note
 - [x] send_payment_reminder
 
+### Frontend
+
+- [x] Vite + React + Tailwind project in `frontend/`
+- [x] `useVoiceAgent.js` audio worklet + WebSocket voice engine
+- [x] dashboard
+- [x] transcript UI
+- [x] KPI cards
+- [x] best sellers + overdue panels
+- [x] activity log panel
+
 ### Deployment
-- [x] Managed PostgreSQL (Render, free tier)
-- [x] Hosted FastAPI backend (Render, auto-deploy from GitHub)
-- [x] Production agent configuration (six tools pointed at live Render URL)
 
-
+- [x] Managed PostgreSQL (Render, `voiceops-db`, free tier expires 2026-10-13)
+- [x] Hosted FastAPI (`voiceops-api`, auto-deploy from GitHub)
+- [x] Hosted React static site (`voiceops-ffl0`, root `frontend`, publish `dist`)
+- [x] Vite production env set on the static site and rebuilt:
+      `VITE_BACKEND_URL=https://voiceops-api-ml1i.onrender.com`
+      `VITE_ASSEMBLYAI_AGENT_ID=agent_0b8e9da298d542c6989819231c753a01`
+- [x] Backend CORS allows `https://voiceops-ffl0.onrender.com`
+- [x] Live dashboard KPIs populate from production data
+- [x] Start call works on the public URL
 
 ---
 
 ## NOT COMPLETED
 
-### Environment
+### Verification still in progress
 
-
-### Backend
-
-Backend's fully ready now — token minting, activity log, and all six tools. Next real step is scaffolding the frontend
-
-
-
-
-
-
-### Frontend
-
-- [ ] React project
-- [ ] dashboard
-- [ ] transcript UI
-- [ ] KPI cards
-- [ ] tool activity
-- [ ] activity log
-
-### Deployment
-
-
-- [ ] hosted frontend
-- [ ] clean-room test
+- [ ] Clean-room / mobile test of the public URL (in progress 2026-09-14)
 
 ### Submission
 
-- [ ] README
-- [ ] architecture diagram
-- [ ] screenshots
-- [ ] cover image
-- [ ] demo video
-- [ ] slides
-- [ ] public GitHub
-- [ ] demo URL
+- [ ] Public GitHub README (repo currently has no root README)
+- [ ] Architecture diagram for judges
+- [ ] Screenshots
+- [ ] Cover image
+- [ ] Demo video
+- [ ] Slides
+- [ ] Demo URL listed on GitHub About + Lablab
 - [ ] Lablab submission
 
 ---
 
 ## CURRENT BLOCKER
 
-None. PostgreSQL environment blocker resolved 2026-09-11.
+None for the hosted stack. First static-site load failed because
+`VITE_BACKEND_URL` was baked as the frontend origin instead of the API.
+Fixed by correcting Render static-site env vars and rebuilding.
+
+Render free web service still cold-starts after ~15 minutes idle
+(~30–50s). Expected. Not a product bug.
 
 ---
 
-
-
 ## CURRENT IMMEDIATE OBJECTIVE
 
-Deploy the React frontend as a Render Static Site, then update backend
-CORS to allow the real deployed frontend origin. This completes
-MASTER_SPEC's "Deployed demo" requirement.
+Finish a clean-room test of https://voiceops-ffl0.onrender.com
+(including mobile). Then write a public README so judges can understand
+the project from GitHub.
 
+Do not add a seventh voice tool until ADR-005 is explicitly amended.
 
+---
 
 ## DO NOT DO YET
 
 Do not:
 
-- build React
-\
-- configure production deployment
-- add new features
-- change database architecture
-- add external messaging
-- add Redis/Kafka/Kubernetes
-- commit .env
+- add a 7th voice tool without replacing one (ADR-005)
+- add real WhatsApp / SMS / payments
+- add Redis / Kafka / Kubernetes / microservices
+- commit `.env` or API keys
+- record the demo video before the public URL is verified on a second device
+- start Lablab submission packaging before README exists
 
 ---
 
@@ -206,43 +197,39 @@ BUILD
 
 ---
 
-
-
 ## CURRENT NEXT ACTION
 
-Scaffold the Vite + React + Tailwind project in a new frontend/ folder.
+1. Clean-room / mobile test of the live dashboard.
+2. Add a root README (problem, demo URL, architecture, how to run).
+
 ---
 
 ## LAST KNOWN WORKING STATE
 
-AssemblyAI browser starter:
-WORKING
+Public dashboard:
+WORKING — https://voiceops-ffl0.onrender.com
 
-Local application directory:
-WORKING
+Public API:
+WORKING — https://voiceops-api-ml1i.onrender.com
+`/health` → `{"status":"ok","database":"connected"}`
+`/tools/business_snapshot` → 10 customers, 30 orders, $502.50, 6 overdue
 
-Python 3.13.2 venv:
-WORKING
+Voice call on hosted dashboard:
+WORKING (desktop). Mobile clean-room test pending.
 
-AssemblyAI API credentials:
-CONFIGURED LOCALLY
+Canonical agent:
+`agent_0b8e9da298d542c6989819231c753a01`
 
-Voice interaction:
-WORKING
+Local Python 3.13.2 venv:
+WORKING (optional; production no longer depends on it)
 
-PostgreSQL:
-RUNNING (Docker, port 5433) — connection verified
+Local Docker Postgres:
+AVAILABLE for local work; production uses Render Postgres
 
-dataase schema created 7 tables .
- Schema |     Name     | Type  |  Owner   
---------+--------------+-------+----------
- public | activity_log | table | postgres
- public | customers    | table | postgres
- public | notes        | table | postgres
- public | order_items  | table | postgres
- public | orders       | table | postgres
- public | payments     | table | postgres
- public | products     | table | postgres
+Vite note:
+`VITE_*` values are baked at static-site build time. Changing them on
+Render requires a rebuild, not just a runtime env save.
+
 ---
 
 ## IMPORTANT PROJECT RULE
