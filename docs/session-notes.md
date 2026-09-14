@@ -282,3 +282,41 @@ backend/` package: `__init__.py`, `database.py`, `main.py`
 - Deploy the React frontend itself as a Render Static Site (currently only the backend + database are hosted; the dashboard still runs on local Vite dev server)
 - Update backend CORS `allow_origins` to include the deployed frontend's real URL once known
 - Once frontend is hosted too, VoiceOps has a genuine public demo URL — required for MASTER_SPEC's "Deployed demo" and for recording the final demo video
+
+
+---
+
+## Session 2026-09-14 — Public Frontend Deploy + Vite Env Fix
+
+### Goal
+- Deploy the React dashboard as a Render Static Site
+- Allow the live origin in backend CORS
+- Prove a public URL with zero local services
+
+### Decisions Made
+- Host frontend as a Render Static Site (`voiceops-ffl0`), not a second Web Service — dashboard is a Vite build, no Node server needed
+- Static-site build settings: root directory `frontend`, build `npm run build`, publish `dist`
+- `VITE_*` variables must live on the static-site service and require a rebuild; they are not runtime secrets and are not read from gitignored `frontend/.env` on Render
+- Keep ADR-005 six-tool freeze until a later, explicit product decision. Dashboard-only endpoints still do not count as voice tools
+- Record this session in repo docs before starting feature expansion (ADR-008)
+
+### What Got Built
+- Render Static Site `voiceops-ffl0` from the same GitHub repo
+- Backend CORS allow-list updated to include `https://voiceops-ffl0.onrender.com` (plus localhost for local Vite)
+- Production Vite env on the static site: `VITE_BACKEND_URL=https://voiceops-api-ml1i.onrender.com`, `VITE_ASSEMBLYAI_AGENT_ID=agent_0b8e9da298d542c6989819231c753a01`
+- ADR-010 added for Render hosting topology
+
+### What Was Verified
+- Live API `/health` → ok, database connected
+- Live API `/tools/business_snapshot` → 10 customers, 30 orders, $502.50, 6 overdue
+- CORS preflight from the dashboard origin is allowed
+- After Vite env rebuild: public dashboard KPIs populate and Start call works
+- Public demo URL: https://voiceops-ffl0.onrender.com
+
+### Blockers Hit
+- First public load showed empty KPIs and Start call did nothing. Cause was not CORS. `VITE_BACKEND_URL` had been set to the static-site URL, so the JS called itself (`/tools/business_snapshot` and `/api/voice-token` both 404). Fix: point `VITE_BACKEND_URL` at `https://voiceops-api-ml1i.onrender.com` and rebuild the static site
+
+### Next Session
+- Clean-room / mobile test of https://voiceops-ffl0.onrender.com
+- Write a root README (demo URL, architecture, how to run) — GitHub currently has no public description
+- Do not add a seventh voice tool until ADR-005 is formally amended
