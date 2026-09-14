@@ -243,3 +243,42 @@ A voice business operator needs realistic data to demonstrate retrieval,
 aggregation and actions.
 
 No real customer data will be required for the MVP.
+
+---
+
+## ADR-010 — Host Production on Render
+
+Date:
+2026-09-14
+
+Status:
+Accepted
+
+Decision:
+Production hosting is Render:
+
+- PostgreSQL: `voiceops-db`
+- FastAPI web service: `voiceops-api` at https://voiceops-api-ml1i.onrender.com
+- React static site: `voiceops-ffl0` at https://voiceops-ffl0.onrender.com
+- Canonical agent: `agent_0b8e9da298d542c6989819231c753a01`
+
+Reason:
+Need a public demo URL for the hackathon. Render free tier needs no credit
+card. Static site for the Vite dashboard; web service for FastAPI; managed
+Postgres as the source of truth.
+
+Alternatives:
+Railway, Vercel (frontend only), keep ngrok.
+
+Why rejected:
+ngrok latency was already measured as the main demo risk. Vercel would
+split hosting. Railway required a card at decision time.
+
+Consequence:
+
+- Backend CORS must include the static-site origin.
+- `VITE_BACKEND_URL` and `VITE_ASSEMBLYAI_AGENT_ID` must be set on the
+  static-site service and the site must be rebuilt after any change.
+- Free web service cold-starts after ~15 minutes idle.
+- Free Postgres expires 2026-10-13; re-seed or upgrade before then.
+- Git push auto-deploys backend; static site rebuilds on push and on env change.
