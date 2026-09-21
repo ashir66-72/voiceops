@@ -15,11 +15,9 @@ class Customer(Base):
     email = Column(String)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
-    # One customer can have many orders, notes, and activity_log entries.
-    # back_populates links both sides so you can go customer.orders
-    # AND order.customer, in either direction.
     orders = relationship("Order", back_populates="customer")
     notes = relationship("Note", back_populates="customer")
+    reviews = relationship("Review", back_populates="customer")
 
 
 class Product(Base):
@@ -38,16 +36,16 @@ class Order(Base):
     __tablename__ = "orders"
 
     id = Column(Integer, primary_key=True)
-    # ForeignKey ties this column to customers.id — Postgres will reject
-    # any order that points to a customer_id that doesn't exist.
     customer_id = Column(Integer, ForeignKey("customers.id"), nullable=False)
     order_date = Column(DateTime(timezone=True), server_default=func.now())
     total_amount = Column(Numeric(10, 2), nullable=False)
     status = Column(String, default="completed")
+    order_type = Column(String, default="dine_in")  # dine_in or takeout
 
     customer = relationship("Customer", back_populates="orders")
     order_items = relationship("OrderItem", back_populates="order")
     payments = relationship("Payment", back_populates="order")
+    reviews = relationship("Review", back_populates="order")
 
 
 class OrderItem(Base):
@@ -88,11 +86,25 @@ class Note(Base):
     customer = relationship("Customer", back_populates="notes")
 
 
+class Review(Base):
+    __tablename__ = "reviews"
+
+    id = Column(Integer, primary_key=True)
+    customer_id = Column(Integer, ForeignKey("customers.id"), nullable=False)
+    order_id = Column(Integer, ForeignKey("orders.id"), nullable=False)
+    rating = Column(Integer, nullable=False)   # 1-5
+    comment = Column(Text)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+    customer = relationship("Customer", back_populates="reviews")
+    order = relationship("Order", back_populates="reviews")
+
+
 class ActivityLog(Base):
     __tablename__ = "activity_log"
 
     id = Column(Integer, primary_key=True)
-    action_type = Column(String, nullable=False)  # e.g. "payment_reminder", "note_added"
+    action_type = Column(String, nullable=False)
     description = Column(Text, nullable=False)
     related_customer_id = Column(Integer, ForeignKey("customers.id"), nullable=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
