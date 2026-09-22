@@ -61,6 +61,42 @@ TOOLS = [
         "timeout_seconds": 15,
         "http": {"url": f"{BASE_URL}/tools/find_customer", "http_method": "GET", "headers": []},
     },
+    
+    {
+    "name": "business_intelligence",
+    "description": (
+        "Get a combined business intelligence report for Chicago Ramen. "
+        "Combines internal metrics (order trends, revenue, top products, "
+        "customer ratings) with external context (live weather in Mundelein IL, "
+        "nearby competitor count). Use this when the owner asks questions like: "
+        "'How are we doing this week?', 'Is there anything outside our system "
+        "worth knowing?', 'How competitive is our area?', or any question that "
+        "benefits from context beyond just the database. "
+        "Always clearly separate internal facts from external observations. "
+        "Never claim that external factors caused business outcomes — say "
+        "'may be relevant' or 'coincides with'."
+    ),
+    "parameters": {
+        "type": "object",
+        "properties": {
+            "focus": {
+                "type": "string",
+                "enum": ["combined", "weather", "market"],
+                "description": "What to focus on. Default is combined.",
+                "default": "combined",
+            }
+        },
+        "required": [],
+    },
+    "execution_mode": "interactive",
+    "timeout_seconds": 30,
+    "http": {
+        "url": f"{BASE_URL}/tools/business_intelligence",
+        "http_method": "GET",
+        "headers": []
+    },
+},
+    
     {
         "name": "overdue_payments",
         "description": "List all payments that are currently overdue (past their due date and unpaid). Use this for requests like 'who owes us money?' Do not use for payments that are merely pending/not yet due.",

@@ -4,6 +4,7 @@ from fastapi import Depends, FastAPI, HTTPException, Query
 from sqlalchemy import text
 from sqlalchemy.orm import Session
 import httpx
+from datetime import datetime, timezone, timedelta
 
 from backend import tools
 from backend.database import engine, get_db
@@ -21,6 +22,202 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+
+
+
+
+
+
+
+def business_intelligence(db: Session, focus: str = "combined") -> dict:
+    """
+    Combines internal business metrics with external context.
+    Returns an evidence package — facts, observations, and source attribution.
+    Never invents conclusions. Agent reasons over the evidence.
+    """
+
+    result = {
+        "focus": focus,
+        "retrieved_at": datetime.now(timezone.utc).isoformat(),
+        "internal_facts": {},
+        "external_facts": {},
+        "limitations": [],
+    }
+
+    # --- Internal: order trends ---
+    try:
+        from sqlalchemy import func as sqlfunc
+        from backend.models import Order, OrderItem, Product, Review
+
+        now = datetime(2026, 9, 30, tzinfo=timezone.utc)  # anchor date
+        week_ago = now - timedelta(days=7)
+        two_weeks_ago = now - timedelta(days=14)
+
+        this_week_orders = db.query(Order).filter(
+            Order.order_date >= week_ago
+        ).count()
+
+        last_week_orders = db.query(Order).filter(
+            Order.order_date >= two_weeks_ago,
+            Order.order_date < week_ago
+        ).count()
+
+        this_week_revenue = db.query(
+            sqlfunc.coalesce(sqlfunc.sum(Order.total_amount), 0)
+        ).filter(Order.order_date >= week_ago).scalar()
+
+        # Top product this week
+        top = (
+            db.query(Product.name, sqlfunc.sum(OrderItem.quantity).label("qty"))
+            .join(OrderItem, OrderItem.product_id == Product.id)
+            .join(Order, Order.id == OrderItem.order_id)
+            .filter(Order.order_date >= week_ago)
+            .group_by(Product.name)
+            .order_by(sqlfunc.sum(OrderItem.quantity).desc())
+            .first()
+        )
+
+        # Average rating this week vs last week
+        this_week_rating = db.query(
+            sqlfunc.avg(Review.rating)
+        ).filter(Review.created_at >= week_ago).scalar()
+
+        last_week_rating = db.query(
+            sqlfunc.avg(Review.rating)
+        ).filter(
+            Review.created_at >= two_weeks_ago,
+            Review.created_at < week_ago
+        ).scalar()
+
+        result["internal_facts"] = {
+            "this_week_orders": this_week_orders,
+            "last_week_orders": last_week_orders,
+            "order_trend": "up" if this_week_orders >= last_week_orders else "down",
+            "this_week_revenue": float(this_week_revenue),
+            "top_product_this_week": top[0] if top else None,
+            "avg_rating_this_week": round(float(this_week_rating), 2) if this_week_rating else None,
+            "avg_rating_last_week": round(float(last_week_rating), 2) if last_week_rating else None,
+        }
+    except Exception as e:
+        result["limitations"].append(f"Internal data unavailable: {str(e)}")
+
+    # --- External: weather ---
+    try:
+        import httpx as _httpx
+        weather_resp = _httpx.get(
+            "https://api.open-meteo.com/v1/forecast",
+            params={
+                "latitude": 42.2700919,
+                "longitude": -88.0052408,
+                "current": "temperature_2m,precipitation,weathercode,windspeed_10m",
+                "temperature_unit": "fahrenheit",
+                "timezone": "America/Chicago",
+            },
+            timeout=8,
+        )
+        if weather_resp.status_code == 200:
+            current = weather_resp.json().get("current", {})
+            wcode = current.get("weathercode", 0)
+            if wcode == 0:
+                condition = "clear"
+            elif wcode <= 3:
+                condition = "partly cloudy"
+            elif wcode <= 67:
+                condition = "rainy"
+            elif wcode <= 77:
+                condition = "snowy"
+            else:
+                condition = "stormy"
+
+            result["external_facts"]["weather"] = {
+                "condition": condition,
+                "temperature_f": current.get("temperature_2m"),
+                "precipitation_mm": current.get("precipitation"),
+                "windspeed_mph": current.get("windspeed_10m"),
+                "source": "open-meteo.com",
+            }
+        else:
+            result["limitations"].append("Weather data unavailable")
+    except Exception:
+        result["limitations"].append("Weather source timed out")
+
+    # --- External: nearby competitors ---
+    try:
+        import os
+        geo_key = os.getenv("GEOAPIFY_API_KEY")
+        if not geo_key:
+            result["limitations"].append("GEOAPIFY_API_KEY not configured")
+        else:
+            geo_resp = _httpx.get(
+                "https://api.geoapify.com/v2/places",
+                params={
+                    "categories": "catering.restaurant,catering.fast_food,catering.cafe",
+                    "filter": "circle:-88.0052408,42.2700919,1000",
+                    "limit": 20,
+                    "apiKey": geo_key,
+                },
+                timeout=8,
+            )
+            if geo_resp.status_code == 200:
+                features = geo_resp.json().get("features", [])
+                # exclude Chicago Ramen itself
+                competitors = [
+                    f["properties"].get("name", "Unknown")
+                    for f in features
+                    if f["properties"].get("name") != "Chicago Ramen"
+                ]
+                result["external_facts"]["market"] = {
+                    "competitors_within_1km": len(competitors),
+                    "competitor_names": competitors[:5],
+                    "source": "geoapify.com",
+                    "attribution": "Powered by Geoapify | © OpenStreetMap contributors",
+                }
+            else:
+                result["limitations"].append("Market data unavailable")
+    except Exception:
+        result["limitations"].append("Market source timed out")
+
+    return result
+
+
+
+
+
+
+
+
+
+@app.get("/tools/business_intelligence")
+def get_business_intelligence(
+    focus: str = Query("combined"),
+    db: Session = Depends(get_db),
+):
+    data = tools.business_intelligence(db, focus)
+    
+    # Return a lean, voice-friendly summary
+    internal = data.get("internal_facts", {})
+    weather = data.get("external_facts", {}).get("weather", {})
+    market = data.get("external_facts", {}).get("market", {})
+    limitations = data.get("limitations", [])
+
+    return {
+        "this_week_orders": internal.get("this_week_orders"),
+        "last_week_orders": internal.get("last_week_orders"),
+        "order_trend": internal.get("order_trend"),
+        "this_week_revenue_usd": internal.get("this_week_revenue"),
+        "top_product": internal.get("top_product_this_week"),
+        "avg_rating_this_week": internal.get("avg_rating_this_week"),
+        "avg_rating_last_week": internal.get("avg_rating_last_week"),
+        "weather_condition": weather.get("condition"),
+        "temperature_f": weather.get("temperature_f"),
+        "competitors_nearby": market.get("competitors_within_1km"),
+        "competitor_examples": market.get("competitor_names", [])[:3],
+        "limitations": limitations,
+        "data_source_note": "Internal data from Chicago Ramen database. Weather from open-meteo.com. Market data from Geoapify.",
+    }
+
+
 
 
 @app.get("/health")
