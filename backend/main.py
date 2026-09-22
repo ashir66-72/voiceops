@@ -3,6 +3,7 @@ import requests
 from fastapi import Depends, FastAPI, HTTPException, Query
 from sqlalchemy import text
 from sqlalchemy.orm import Session
+import httpx
 
 from backend import tools
 from backend.database import engine, get_db
@@ -97,3 +98,53 @@ def get_voice_token():
 @app.get("/tools/activity_log")
 def get_activity_log(limit: int = Query(20, ge=1, le=100), db: Session = Depends(get_db)):
     return {"activity_log": tools.recent_activity(db, limit)}
+
+
+
+
+
+BUSINESS_LAT = 42.2700919
+BUSINESS_LON = -88.0052408
+
+@app.get("/test/geoapify")
+async def test_geoapify():
+    api_key = os.getenv("GEOAPIFY_API_KEY")
+    if not api_key:
+        raise HTTPException(status_code=500, detail="GEOAPIFY_API_KEY not set")
+
+    url = "https://api.geoapify.com/v2/places"
+    params = {
+        "categories": "catering.restaurant,catering.fast_food,catering.cafe",
+        "filter": f"circle:{BUSINESS_LON},{BUSINESS_LAT},1000",
+        "limit": 10,
+        "apiKey": api_key,
+    }
+
+    async with httpx.AsyncClient(timeout=10) as client:
+        resp = await client.get(url, params=params)
+
+    if resp.status_code != 200:
+        raise HTTPException(
+            status_code=502,
+            detail=f"Geoapify error {resp.status_code}: {resp.text[:200]}"
+        )
+
+    data = resp.json()
+    features = data.get("features", [])
+
+    places = []
+    for f in features:
+        props = f.get("properties", {})
+        places.append({
+            "name": props.get("name", "Unknown"),
+            "category": props.get("categories", [None])[0],
+            "distance_m": round(props.get("distance", 0)),
+            "address": props.get("formatted", ""),
+        })
+
+    return {
+        "business_location": {"lat": BUSINESS_LAT, "lon": BUSINESS_LON},
+        "radius_m": 1000,
+        "nearby_count": len(places),
+        "places": places,
+    }
