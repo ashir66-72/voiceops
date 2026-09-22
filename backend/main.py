@@ -99,7 +99,38 @@ def get_voice_token():
 def get_activity_log(limit: int = Query(20, ge=1, le=100), db: Session = Depends(get_db)):
     return {"activity_log": tools.recent_activity(db, limit)}
 
+@app.get("/test/weather")
+async def test_weather():
+    url = "https://api.open-meteo.com/v1/forecast"
+    params = {
+        "latitude": BUSINESS_LAT,
+        "longitude": BUSINESS_LON,
+        "current": "temperature_2m,precipitation,weathercode,windspeed_10m",
+        "temperature_unit": "fahrenheit",
+        "timezone": "America/Chicago",
+    }
 
+    async with httpx.AsyncClient(timeout=10) as client:
+        resp = await client.get(url, params=params)
+
+    if resp.status_code != 200:
+        raise HTTPException(
+            status_code=502,
+            detail=f"Open-Meteo error {resp.status_code}: {resp.text[:200]}"
+        )
+
+    data = resp.json()
+    current = data.get("current", {})
+
+    return {
+        "location": "Mundelein, IL",
+        "time": current.get("time"),
+        "temperature_f": current.get("temperature_2m"),
+        "precipitation_mm": current.get("precipitation"),
+        "windspeed_mph": current.get("windspeed_10m"),
+        "weathercode": current.get("weathercode"),
+        "source": "open-meteo.com",
+    }
 
 
 
@@ -111,6 +142,10 @@ async def test_geoapify():
     api_key = os.getenv("GEOAPIFY_API_KEY")
     if not api_key:
         raise HTTPException(status_code=500, detail="GEOAPIFY_API_KEY not set")
+    
+    
+    
+    
 
     url = "https://api.geoapify.com/v2/places"
     params = {
