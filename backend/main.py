@@ -193,29 +193,7 @@ def get_business_intelligence(
     focus: str = Query("combined"),
     db: Session = Depends(get_db),
 ):
-    data = tools.business_intelligence(db, focus)
-    
-    # Return a lean, voice-friendly summary
-    internal = data.get("internal_facts", {})
-    weather = data.get("external_facts", {}).get("weather", {})
-    market = data.get("external_facts", {}).get("market", {})
-    limitations = data.get("limitations", [])
-
-    return {
-        "this_week_orders": internal.get("this_week_orders"),
-        "last_week_orders": internal.get("last_week_orders"),
-        "order_trend": internal.get("order_trend"),
-        "this_week_revenue_usd": internal.get("this_week_revenue"),
-        "top_product": internal.get("top_product_this_week"),
-        "avg_rating_this_week": internal.get("avg_rating_this_week"),
-        "avg_rating_last_week": internal.get("avg_rating_last_week"),
-        "weather_condition": weather.get("condition"),
-        "temperature_f": weather.get("temperature_f"),
-        "competitors_nearby": market.get("competitors_within_1km"),
-        "competitor_examples": market.get("competitor_names", [])[:3],
-        "limitations": limitations,
-        "data_source_note": "Internal data from Chicago Ramen database. Weather from open-meteo.com. Market data from Geoapify.",
-    }
+    return tools.business_intelligence(db, focus)
 
 
 
