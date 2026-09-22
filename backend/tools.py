@@ -253,7 +253,7 @@ def business_intelligence(db: Session, focus: str = "combined") -> dict:
                 "temperature_unit": "fahrenheit",
                 "timezone": "America/Chicago",
             },
-            timeout=8,
+            timeout=15,
         )
         if weather_resp.status_code == 200:
             current = weather_resp.json().get("current", {})
@@ -295,7 +295,7 @@ def business_intelligence(db: Session, focus: str = "combined") -> dict:
                     "limit": 20,
                     "apiKey": geo_key,
                 },
-                timeout=8,
+                timeout=15,
             )
             if geo_resp.status_code == 200:
                 features = geo_resp.json().get("features", [])
