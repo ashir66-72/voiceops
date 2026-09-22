@@ -1,7 +1,9 @@
+import os
+import httpx
 from sqlalchemy import func
 from sqlalchemy.orm import Session
-from datetime import datetime, timezone
-from backend.models import ActivityLog, Customer, Note, Order, OrderItem, Payment, Product
+from datetime import datetime, timezone, timedelta
+from backend.models import ActivityLog, Customer, Note, Order, OrderItem, Payment, Product, Review
 
 
 def business_snapshot(db: Session) -> dict:
@@ -83,8 +85,8 @@ def best_sellers(db: Session, limit: int = 5) -> list[dict]:
         }
         for product_id, name, total_quantity in rows
     ]
-    
-    
+
+
 def add_note(db: Session, customer_id: int, content: str) -> dict:
     """Writes a note tied to a customer, then logs the action."""
     customer = db.query(Customer).filter(Customer.id == customer_id).first()
@@ -93,7 +95,7 @@ def add_note(db: Session, customer_id: int, content: str) -> dict:
 
     note = Note(customer_id=customer_id, content=content)
     db.add(note)
-    db.flush()  # get note.id before logging
+    db.flush()
 
     db.add(ActivityLog(
         action_type="note_added",
@@ -151,8 +153,8 @@ def send_payment_reminder(db: Session, payment_id: int) -> dict:
         "reminder_sent_at": payment.reminder_sent_at.isoformat(),
         "note": "Simulated reminder recorded in the system. No real message was sent.",
     }
-    
-    
+
+
 def recent_activity(db: Session, limit: int = 20) -> list[dict]:
     """Most recent audit-log entries, for the dashboard's activity feed."""
     rows = (
@@ -171,3 +173,146 @@ def recent_activity(db: Session, limit: int = 20) -> list[dict]:
         }
         for row in rows
     ]
+
+
+def business_intelligence(db: Session, focus: str = "combined") -> dict:
+    """
+    Combines internal business metrics with external context.
+    Returns an evidence package — facts, observations, source attribution.
+    Never invents conclusions. Agent reasons over the evidence.
+    """
+
+    result = {
+        "focus": focus,
+        "retrieved_at": datetime.now(timezone.utc).isoformat(),
+        "internal_facts": {},
+        "external_facts": {},
+        "limitations": [],
+    }
+
+    # --- Internal: order trends and ratings ---
+    try:
+        now = datetime(2026, 9, 30, tzinfo=timezone.utc)
+        week_ago = now - timedelta(days=7)
+        two_weeks_ago = now - timedelta(days=14)
+
+        this_week_orders = db.query(Order).filter(
+            Order.order_date >= week_ago
+        ).count()
+
+        last_week_orders = db.query(Order).filter(
+            Order.order_date >= two_weeks_ago,
+            Order.order_date < week_ago
+        ).count()
+
+        this_week_revenue = db.query(
+            func.coalesce(func.sum(Order.total_amount), 0)
+        ).filter(Order.order_date >= week_ago).scalar()
+
+        top = (
+            db.query(Product.name, func.sum(OrderItem.quantity).label("qty"))
+            .join(OrderItem, OrderItem.product_id == Product.id)
+            .join(Order, Order.id == OrderItem.order_id)
+            .filter(Order.order_date >= week_ago)
+            .group_by(Product.name)
+            .order_by(func.sum(OrderItem.quantity).desc())
+            .first()
+        )
+
+        this_week_rating = db.query(
+            func.avg(Review.rating)
+        ).filter(Review.created_at >= week_ago).scalar()
+
+        last_week_rating = db.query(
+            func.avg(Review.rating)
+        ).filter(
+            Review.created_at >= two_weeks_ago,
+            Review.created_at < week_ago
+        ).scalar()
+
+        result["internal_facts"] = {
+            "this_week_orders": this_week_orders,
+            "last_week_orders": last_week_orders,
+            "order_trend": "up" if this_week_orders >= last_week_orders else "down",
+            "this_week_revenue": float(this_week_revenue),
+            "top_product_this_week": top[0] if top else None,
+            "avg_rating_this_week": round(float(this_week_rating), 2) if this_week_rating else None,
+            "avg_rating_last_week": round(float(last_week_rating), 2) if last_week_rating else None,
+        }
+    except Exception as e:
+        result["limitations"].append(f"Internal data unavailable: {str(e)}")
+
+    # --- External: weather ---
+    try:
+        weather_resp = httpx.get(
+            "https://api.open-meteo.com/v1/forecast",
+            params={
+                "latitude": 42.2700919,
+                "longitude": -88.0052408,
+                "current": "temperature_2m,precipitation,weathercode,windspeed_10m",
+                "temperature_unit": "fahrenheit",
+                "timezone": "America/Chicago",
+            },
+            timeout=8,
+        )
+        if weather_resp.status_code == 200:
+            current = weather_resp.json().get("current", {})
+            wcode = current.get("weathercode", 0)
+            if wcode == 0:
+                condition = "clear"
+            elif wcode <= 3:
+                condition = "partly cloudy"
+            elif wcode <= 67:
+                condition = "rainy"
+            elif wcode <= 77:
+                condition = "snowy"
+            else:
+                condition = "stormy"
+
+            result["external_facts"]["weather"] = {
+                "condition": condition,
+                "temperature_f": current.get("temperature_2m"),
+                "precipitation_mm": current.get("precipitation"),
+                "windspeed_mph": current.get("windspeed_10m"),
+                "source": "open-meteo.com",
+            }
+        else:
+            result["limitations"].append("Weather data unavailable")
+    except Exception:
+        result["limitations"].append("Weather source timed out")
+
+    # --- External: nearby competitors ---
+    try:
+        geo_key = os.getenv("GEOAPIFY_API_KEY")
+        if not geo_key:
+            result["limitations"].append("GEOAPIFY_API_KEY not configured")
+        else:
+            geo_resp = httpx.get(
+                "https://api.geoapify.com/v2/places",
+                params={
+                    "categories": "catering.restaurant,catering.fast_food,catering.cafe",
+                    "filter": "circle:-88.0052408,42.2700919,1000",
+                    "limit": 20,
+                    "apiKey": geo_key,
+                },
+                timeout=8,
+            )
+            if geo_resp.status_code == 200:
+                features = geo_resp.json().get("features", [])
+                competitors = [
+                    f["properties"].get("name", "Unknown")
+                    for f in features
+                    if f["properties"].get("name") != "Chicago Ramen"
+                ]
+                result["external_facts"]["market"] = {
+                    "competitors_within_1km": len(competitors),
+                    "competitor_names": competitors[:5],
+                    "source": "geoapify.com",
+                    "attribution": "Powered by Geoapify | © OpenStreetMap contributors",
+                }
+            else:
+                result["limitations"].append("Market data unavailable")
+    except Exception:
+        result["limitations"].append("Market source timed out")
+
+    return result
