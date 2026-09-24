@@ -4,10 +4,10 @@
   "version": "1.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
+    "dev": "tsx server.ts",
     "build": "vite build",
-    "lint": "oxlint src ",
-    "start": "vite",
+    "lint": "oxlint src server.ts",
+    "start": "tsx server.ts",
     "preview": "vite preview"
   },
   "dependencies": {
