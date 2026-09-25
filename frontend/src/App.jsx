@@ -422,15 +422,34 @@ function App() {
           </div>
 
           <div className="flex items-center gap-3">
-            {/* View Canvas Toggle when Idle */}
+             {/* View Canvas Toggle when Idle */}
             {!isActive && (
               <motion.button
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
                 onClick={() => setForceCanvasView((prev) => !prev)}
-                className="hidden sm:inline-flex items-center gap-2 bg-white border-3 border-black px-3 py-1.5 rounded-xl shadow-[3px_3px_0px_#000] font-black text-xs uppercase cursor-pointer hover:bg-neutral-100"
+                className="hidden sm:inline-flex items-center gap-2 bg-white border-3 border-black px-3 py-1.5 rounded-xl shadow-[3px_3px_0px_#000] font-black text-xs uppercase cursor-pointer hover:bg-neutral-100 transition-colors"
               >
-                <span>{forceCanvasView ? '🎯 Focus Hero' : '📊 View Widgets'}</span>
+                {forceCanvasView ? (
+                  <>
+                    <svg className="w-3.5 h-3.5 stroke-[2.5]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round">
+                      <circle cx="12" cy="12" r="9" />
+                      <circle cx="12" cy="12" r="3" />
+                      <path d="M12 3v3M12 18v3M3 12h3M18 12h3" />
+                    </svg>
+                    <span>Focus Hero</span>
+                  </>
+                ) : (
+                  <>
+                    <svg className="w-3.5 h-3.5 stroke-[2.5]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round">
+                      <rect x="3" y="3" width="7" height="7" rx="1.5" />
+                      <rect x="14" y="3" width="7" height="7" rx="1.5" />
+                      <rect x="14" y="14" width="7" height="7" rx="1.5" />
+                      <rect x="3" y="14" width="7" height="7" rx="1.5" />
+                    </svg>
+                    <span>View Widgets</span>
+                  </>
+                )}
               </motion.button>
             )}
 
@@ -796,7 +815,7 @@ function App() {
                   <div className="space-y-3">
                     {overdue.length === 0 ? (
                       <div className="p-6 bg-[#A6FF00] border-2 border-black rounded-xl text-center font-black text-sm">
-                        ✨ Great news! All customer payments are up to date!
+                         Great news! All customer payments are up to date!
                       </div>
                     ) : (
                       overdue.map((p) => (
