@@ -63,6 +63,7 @@ current_time = datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%d %
 WELCOME_MESSAGE = """Hi, I'm Pen-G, the voice operator for Chicago Ramen Mundelein. How can I help today?"""
 
 
+
 TOOLS = [
     
     
@@ -223,7 +224,7 @@ def update():
             "name": "VoiceOps — Urban Bites",
             "system_prompt": SYSTEM_PROMPT,
             "greeting": WELCOME_MESSAGE,
-            "end_call_phrases": ["end call pen g", "end call pen-g","goodbey pen-g"],
+            "end_call_phrases": ["end call pen g", "end call pen-g","goodbey pen-g", "goodbye", "have a great day", "take care", "end call", "talk soon","stay sharp","talk soon","have a good day"],
             "voice": {"voice_id": "alba"},
             "tools": TOOLS,
         },

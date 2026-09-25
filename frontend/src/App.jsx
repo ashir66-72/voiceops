@@ -363,8 +363,6 @@ function App() {
 
  useEffect(() => {
   refreshDashboard()
-  const interval = setInterval(refreshDashboard, 30000)
-  return () => clearInterval(interval)
 }, [refreshDashboard])
 
   // Auto-refresh after any tool call, so write actions immediately reflect in UI
