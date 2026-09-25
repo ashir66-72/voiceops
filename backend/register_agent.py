@@ -224,7 +224,7 @@ def update():
             "name": "VoiceOps — Urban Bites",
             "system_prompt": SYSTEM_PROMPT,
             "greeting": WELCOME_MESSAGE,
-            "end_call_phrases": ["end call pen g", "end call pen-g","goodbey pen-g", "goodbye", "have a great day", "take care", "end call", "talk soon","stay sharp","talk soon","have a good day"],
+            "end_call_phrases": ["end call pen g", "end call pen-g","goodbey pen-g", "goodbye", "have a great day", "take care", "end call", "talk soon","stay sharp","talk soon","have a good day","ok am signing of see you next time"],
             "voice": {"voice_id": "alba"},
             "tools": TOOLS,
         },
