@@ -9,6 +9,7 @@ in place. Running this again is safe; it always targets the same agent.
 import os
 import requests
 from dotenv import load_dotenv
+import datetime
 
 load_dotenv()
 
@@ -23,7 +24,11 @@ if not BASE_URL:
 if not AGENT_ID:
     raise RuntimeError("ASSEMBLYAI_AGENT_ID not found — check your .env file")
 
-SYSTEM_PROMPT = """You are Pen-G, the voice operator for Chicago Ramen Mundelein.
+
+
+current_time = datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
+SYSTEM_PROMPT = f"""The current date and time is {current_time}
+  You are Pen-G, the voice operator for Chicago Ramen Mundelein.
 You are sharp, confident, and direct. You get things done fast and you don't waste 
 the owner's time. You have a personality — you're not a corporate robot — but you 
 stay professional because this is real business data.
@@ -53,8 +58,57 @@ Rules:
 try to keep the massage short and clear if there is lot of text to speak just speak short about it and then ask if user want more info on that.
 - If something fails, say so plainly. No excuses, no fluff.
 """
+current_time = datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
+
+WELCOME_MESSAGE = """Hi, I'm Pen-G, the voice operator for Chicago Ramen Mundelein. How can I help today?"""
+
 
 TOOLS = [
+    
+    
+    {
+    "name": "resolve_payment",
+    "description": "Mark an overdue or pending payment as paid. Use when the owner says a customer has paid their bill. Always confirm the customer name and amount before executing.",
+    "parameters": {
+        "type": "object",
+        "properties": {
+            "payment_id": {"type": "integer", "description": "The payment ID to mark as paid"}
+        },
+        "required": ["payment_id"]
+    },
+    "execution_mode": "interactive",
+    "timeout_seconds": 15,
+    "http": {
+        "url": f"{BASE_URL}/tools/resolve_payment",
+        "http_method": "POST",
+        "headers": []
+    },
+},
+{
+    "name": "delete_note",
+    "description": "Delete a note by its ID. Use when the owner asks to remove a note. Always confirm the note content before deleting.",
+    "parameters": {
+        "type": "object",
+        "properties": {
+            "note_id": {"type": "integer", "description": "The note ID to delete"}
+        },
+        "required": ["note_id"]
+    },
+    "execution_mode": "interactive",
+    "timeout_seconds": 15,
+    "http": {
+        "url": f"{BASE_URL}/tools/delete_note",
+        "http_method": "POST",
+        "headers": []
+    },
+},
+    
+    
+    
+    
+    
+    
+    
     {
         "name": "business_snapshot",
         "description": "Get a high-level summary of the business: total customers, total orders, total revenue, and overdue payment counts. Use this for requests like 'give me today's business summary.'",
@@ -168,7 +222,8 @@ def update():
         json={
             "name": "VoiceOps — Urban Bites",
             "system_prompt": SYSTEM_PROMPT,
-            "greeting": "Hi, I'm VoiceOps. How can I help with Urban Bites today?",
+            "greeting": WELCOME_MESSAGE,
+            "end_call_phrases": ["end call pen g", "end call pen-g","goodbey pen-g"],
             "voice": {"voice_id": "alba"},
             "tools": TOOLS,
         },

@@ -6,6 +6,69 @@ from datetime import datetime, timezone, timedelta
 from backend.models import ActivityLog, Customer, Note, Order, OrderItem, Payment, Product, Review
 
 
+def resolve_payment(db: Session, payment_id: int) -> dict:
+    """Mark an overdue or pending payment as paid."""
+    payment = db.query(Payment).filter(Payment.id == payment_id).first()
+    if not payment:
+        return {"success": False, "error": f"No payment found with id {payment_id}"}
+    if payment.status == "paid":
+        return {"success": False, "error": f"Payment {payment_id} is already marked as paid"}
+    
+    order = db.query(Order).filter(Order.id == payment.order_id).first()
+    customer = db.query(Customer).filter(Customer.id == order.customer_id).first()
+    
+    payment.status = "paid"
+    payment.paid_date = datetime.now(timezone.utc)
+    
+    db.add(ActivityLog(
+        action_type="payment_resolved",
+        description=f"Payment #{payment_id} marked as paid for {customer.name} — ${float(payment.amount):.2f}",
+        related_customer_id=customer.id,
+    ))
+    db.commit()
+    
+    return {
+        "success": True,
+        "payment_id": payment.id,
+        "customer_name": customer.name,
+        "amount": float(payment.amount),
+        "status": "paid",
+        "note": "Payment marked as paid and removed from overdue list.",
+    }
+
+
+def delete_note(db: Session, note_id: int) -> dict:
+    """Delete a note by ID."""
+    from backend.models import Note
+    note = db.query(Note).filter(Note.id == note_id).first()
+    if not note:
+        return {"success": False, "error": f"No note found with id {note_id}"}
+    
+    customer = db.query(Customer).filter(Customer.id == note.customer_id).first()
+    content_preview = note.content[:50]
+    
+    db.delete(note)
+    db.add(ActivityLog(
+        action_type="note_deleted",
+        description=f"Note deleted for {customer.name if customer else 'unknown'}: '{content_preview}'",
+        related_customer_id=note.customer_id,
+    ))
+    db.commit()
+    
+    return {
+        "success": True,
+        "note_id": note_id,
+        "customer_name": customer.name if customer else "unknown",
+        "note": "Note deleted successfully.",
+    }
+
+
+
+
+
+
+
+
 def business_snapshot(db: Session) -> dict:
     """High-level KPIs for 'give me today's business summary.'"""
     total_customers = db.query(Customer).count()

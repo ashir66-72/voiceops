@@ -183,9 +183,13 @@ def business_intelligence(db: Session, focus: str = "combined") -> dict:
 
 
 
+@app.post("/tools/resolve_payment")
+def post_resolve_payment(body: dict, db: Session = Depends(get_db)):
+    return tools.resolve_payment(db, body["payment_id"])
 
-
-
+@app.post("/tools/delete_note")
+def post_delete_note(body: dict, db: Session = Depends(get_db)):
+    return tools.delete_note(db, body["note_id"])
 
 
 @app.get("/tools/business_intelligence")

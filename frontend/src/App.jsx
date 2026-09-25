@@ -361,15 +361,24 @@ function App() {
     }
   }, [])
 
-  useEffect(() => {
-    refreshDashboard()
-  }, [refreshDashboard])
+ useEffect(() => {
+  refreshDashboard()
+  const interval = setInterval(refreshDashboard, 30000)
+  return () => clearInterval(interval)
+}, [refreshDashboard])
 
   // Auto-refresh after any tool call, so write actions immediately reflect in UI
   useEffect(() => {
-    const last = transcript[transcript.length - 1]
-    if (last?.who === 'tool') refreshDashboard()
-  }, [transcript, refreshDashboard])
+  const last = transcript[transcript.length - 1]
+  if (last?.who === 'tool') refreshDashboard()
+  if (last?.who === 'agent') {
+    const text = last.text?.toLowerCase() || ''
+    const endPhrases = ['goodbye', 'have a great day', 'take care', 'end call', 'talk soon']
+    if (endPhrases.some(phrase => text.includes(phrase))) {
+      setTimeout(() => stop(), 1500)
+    }
+  }
+}, [transcript, refreshDashboard, stop])
 
   const isActive =
     status === 'connected' ||
