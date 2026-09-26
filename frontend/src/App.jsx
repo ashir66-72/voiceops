@@ -365,6 +365,12 @@ function App() {
   refreshDashboard()
 }, [refreshDashboard])
 
+useEffect(() => {
+  if (isActive) return
+  const interval = setInterval(refreshDashboard, 30000)
+  return () => clearInterval(interval)
+}, [isActive, refreshDashboard])
+
   // Auto-refresh after any tool call, so write actions immediately reflect in UI
   useEffect(() => {
   const last = transcript[transcript.length - 1]
